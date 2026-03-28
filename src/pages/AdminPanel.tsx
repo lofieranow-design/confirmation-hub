@@ -12,6 +12,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 type Agent = Tables<"agents">;
+const ADMIN_EMAIL = "marouane@aarab.mks";
 
 export default function AdminPanel() {
   const { isAdmin, loading: authLoading } = useAuth();
