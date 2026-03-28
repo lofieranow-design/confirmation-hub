@@ -20,6 +20,10 @@ export default function Dashboard() {
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
+    if (!authLoading && isAdmin) {
+      navigate("/admin");
+      return;
+    }
     if (!authLoading && !agent) {
       navigate("/login");
       return;
