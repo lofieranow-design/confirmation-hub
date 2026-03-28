@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, Shield } from "lucide-react";
+import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/StatCard";
 import { AgentLinkCard } from "@/components/AgentLinkCard";
