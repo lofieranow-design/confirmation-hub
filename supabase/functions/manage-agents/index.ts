@@ -120,13 +120,19 @@ Deno.serve(async (req) => {
       // Get user_id from agent
       const { data: agentData } = await supabaseAdmin
         .from("agents")
-        .select("user_id")
+        .select("user_id, email")
         .eq("id", agent_id)
         .single();
 
       if (!agentData) {
         return new Response(JSON.stringify({ error: "Agent not found" }), {
           status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (agentData.email === ADMIN_EMAIL) {
+        return new Response(JSON.stringify({ error: "Le compte admin ne peut pas être supprimé" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
