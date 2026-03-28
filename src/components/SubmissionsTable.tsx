@@ -26,26 +26,36 @@ export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
         <span className="text-xs text-muted-foreground">— {submissions.length} confirmation(s)</span>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full text-sm">
+          {/* Two-section header matching the Excel template */}
           <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">#</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nom</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Téléphone</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Zone</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Adresse complète</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
+            <tr>
+              <th className="bg-[hsl(180,30%,85%)] border border-border px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
+                #
+              </th>
+              <th className="bg-[hsl(45,40%,85%)] border border-border px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" colSpan={4}>
+                Informations sur le destinataire
+              </th>
+              <th className="bg-[hsl(180,30%,85%)] border border-border px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
+                Date
+              </th>
+            </tr>
+            <tr>
+              <th className="bg-[hsl(45,40%,88%)] border border-border px-3 py-2 text-left text-xs font-semibold text-foreground">Nom</th>
+              <th className="bg-[hsl(45,40%,88%)] border border-border px-3 py-2 text-left text-xs font-semibold text-foreground">Téléphone</th>
+              <th className="bg-[hsl(45,40%,88%)] border border-border px-3 py-2 text-left text-xs font-semibold text-foreground">Zone</th>
+              <th className="bg-[hsl(45,40%,88%)] border border-border px-3 py-2 text-left text-xs font-semibold text-foreground">Adresse complète</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody>
             {submissions.map((sub, idx) => (
               <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3 text-sm text-muted-foreground">{idx + 1}</td>
-                <td className="px-4 py-3 text-sm font-medium text-card-foreground">{sub.customer_name}</td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">{sub.phone}</td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">{sub.city}</td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">{sub.address}</td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">
+                <td className="border border-border px-3 py-2.5 text-muted-foreground text-center">{idx + 1}</td>
+                <td className="border border-border px-3 py-2.5 font-medium text-card-foreground">{sub.customer_name}</td>
+                <td className="border border-border px-3 py-2.5 text-muted-foreground">{sub.phone}</td>
+                <td className="border border-border px-3 py-2.5 text-muted-foreground">{sub.city}</td>
+                <td className="border border-border px-3 py-2.5 text-muted-foreground">{sub.address}</td>
+                <td className="border border-border px-3 py-2.5 text-muted-foreground text-center">
                   {format(new Date(sub.created_at), "dd MMM yyyy, HH:mm", { locale: fr })}
                 </td>
               </tr>
