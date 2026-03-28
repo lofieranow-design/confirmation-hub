@@ -6,12 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { FileSpreadsheet } from "lucide-react";
-import { CustomerSubmission } from "@/lib/mock-data";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Submission = Tables<"customer_submissions">;
 
 interface ExportModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  submissions: CustomerSubmission[];
+  submissions: Submission[];
 }
 
 interface ExportFormData {
@@ -38,10 +40,8 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
 
   const handleGenerate = async () => {
     setGenerating(true);
-
     try {
       const { utils, writeFile } = await import("xlsx");
-      
       const data = submissions.map(sub => ({
         "Nom du Client": sub.customer_name,
         "Téléphone": sub.phone,
@@ -54,17 +54,13 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
         "Autoriser l'ouverture": form.autoriser_ouverture,
         "Remarque": form.remarque,
       }));
-
       const ws = utils.json_to_sheet(data);
       const wb = utils.book_new();
       utils.book_append_sheet(wb, ws, "Confirmations");
-
-      // Auto-size columns
       const colWidths = Object.keys(data[0] || {}).map(key => ({
         wch: Math.max(key.length, ...data.map(row => String((row as Record<string, string>)[key] || "").length)) + 2,
       }));
       ws["!cols"] = colWidths;
-
       writeFile(wb, `confirmations_${new Date().toISOString().split("T")[0]}.xlsx`);
       onOpenChange(false);
     } catch {
@@ -85,28 +81,23 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
             Exporter les confirmations
           </DialogTitle>
         </DialogHeader>
-
         <div className="space-y-4 py-2">
           <p className="text-sm text-muted-foreground">
             Remplissez les détails de la commande. Ces informations seront ajoutées à chaque ligne du fichier Excel.
           </p>
-
           <div className="space-y-3">
             <div>
               <Label htmlFor="so">S.O.</Label>
               <Input id="so" value={form.so} onChange={e => handleChange("so", e.target.value)} placeholder="Numéro S.O." />
             </div>
-
             <div>
               <Label htmlFor="nom_marchandise">Nom de la marchandise</Label>
               <Input id="nom_marchandise" value={form.nom_marchandise} onChange={e => handleChange("nom_marchandise", e.target.value)} placeholder="Nom du produit" />
             </div>
-
             <div>
               <Label htmlFor="montant_total">Montant total</Label>
               <Input id="montant_total" value={form.montant_total} onChange={e => handleChange("montant_total", e.target.value)} placeholder="Ex: 299 MAD" />
             </div>
-
             <div>
               <Label htmlFor="autoriser_ouverture">Autoriser l'ouverture du colis</Label>
               <Select value={form.autoriser_ouverture} onValueChange={v => handleChange("autoriser_ouverture", v)}>
@@ -119,14 +110,12 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
                 </SelectContent>
               </Select>
             </div>
-
             <div>
               <Label htmlFor="remarque">Remarque</Label>
               <Textarea id="remarque" value={form.remarque} onChange={e => handleChange("remarque", e.target.value)} placeholder="Notes supplémentaires..." rows={2} />
             </div>
           </div>
         </div>
-
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
           <Button onClick={handleGenerate} disabled={!isValid || generating}>
