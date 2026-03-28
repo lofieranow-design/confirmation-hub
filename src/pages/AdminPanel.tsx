@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2, Users } from "lucide-react";
+import { LogOut, Plus, Pencil, Trash2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ type Agent = Tables<"agents">;
 const ADMIN_EMAIL = "marouane@aarab.mks";
 
 export default function AdminPanel() {
-  const { isAdmin, loading: authLoading } = useAuth();
+  const { isAdmin, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,19 +114,19 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold text-foreground tracking-tight">Gestion des Agents</h1>
-              <p className="text-sm text-muted-foreground">Administration</p>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Gestion des Agents</h1>
+            <p className="text-sm text-muted-foreground">Administration</p>
           </div>
-          <Button onClick={openCreate} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Ajouter un agent
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={openCreate} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Ajouter un agent
+            </Button>
+            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={async () => { await signOut(); navigate("/login"); }}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
