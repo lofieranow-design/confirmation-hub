@@ -42,25 +42,56 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
     setGenerating(true);
     try {
       const { utils, writeFile } = await import("xlsx");
-      const data = submissions.map(sub => ({
-        "Nom du Client": sub.customer_name,
-        "Téléphone": sub.phone,
-        "Adresse": sub.address,
-        "Ville": sub.city,
-        "Date": new Date(sub.created_at).toLocaleDateString("fr-FR"),
-        "S.O.": form.so,
-        "Nom de la marchandise": form.nom_marchandise,
-        "Montant total": form.montant_total,
-        "Autoriser l'ouverture": form.autoriser_ouverture,
-        "Remarque": form.remarque,
-      }));
-      const ws = utils.json_to_sheet(data);
+      const XLSX = await import("xlsx");
+
       const wb = utils.book_new();
+      const wsData: (string | null)[][] = [];
+
+      // Row 1: Group headers (matching Excel template)
+      wsData.push(["Waybill", "Informations sur le destinataire", null, null, null, "Informations de base", null, null, null, null]);
+      // Row 2: Column headers
+      wsData.push([null, "Nom", "Téléphone", "Zone", "Adresse complète", "S.O.", "Nom de la marchandise", "Montant total", "Autoriser l'ouverture du colis ou non", "Remarque"]);
+
+      // Data rows
+      submissions.forEach((sub) => {
+        wsData.push([
+          null,
+          sub.customer_name,
+          sub.phone,
+          sub.city,
+          sub.address,
+          form.so,
+          form.nom_marchandise,
+          form.montant_total,
+          form.autoriser_ouverture,
+          form.remarque,
+        ]);
+      });
+
+      const ws = utils.aoa_to_sheet(wsData);
+
+      // Merge cells to match the Excel template
+      ws["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } },  // A1:A2 (Waybill)
+        { s: { r: 0, c: 1 }, e: { r: 0, c: 4 } },  // B1:E1 (Informations destinataire)
+        { s: { r: 0, c: 5 }, e: { r: 0, c: 9 } },  // F1:J1 (Informations de base)
+      ];
+
+      // Column widths
+      ws["!cols"] = [
+        { wch: 12 }, // Waybill
+        { wch: 25 }, // Nom
+        { wch: 15 }, // Téléphone
+        { wch: 20 }, // Zone
+        { wch: 30 }, // Adresse complète
+        { wch: 12 }, // S.O.
+        { wch: 25 }, // Nom marchandise
+        { wch: 15 }, // Montant total
+        { wch: 20 }, // Autoriser ouverture
+        { wch: 20 }, // Remarque
+      ];
+
       utils.book_append_sheet(wb, ws, "Confirmations");
-      const colWidths = Object.keys(data[0] || {}).map(key => ({
-        wch: Math.max(key.length, ...data.map(row => String((row as Record<string, string>)[key] || "").length)) + 2,
-      }));
-      ws["!cols"] = colWidths;
       writeFile(wb, `confirmations_${new Date().toISOString().split("T")[0]}.xlsx`);
       onOpenChange(false);
     } catch {
