@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, Package } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function CustomerForm() {
   const { agentCode } = useParams<{ agentCode: string }>();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [agentId, setAgentId] = useState<string | null>(null);
+  const [agentNotFound, setAgentNotFound] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
@@ -16,23 +20,55 @@ export default function CustomerForm() {
     city: "",
   });
 
+  useEffect(() => {
+    if (agentCode) {
+      supabase.rpc("get_agent_by_suffix", { code: agentCode.toUpperCase() }).then(({ data }) => {
+        if (data && data.length > 0) {
+          setAgentId(data[0].id);
+        } else {
+          setAgentNotFound(true);
+        }
+      });
+    }
+  }, [agentCode]);
+
   const handleChange = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.fullName || !form.phone || !form.address || !form.city) return;
+    if (!agentId || !form.fullName || !form.phone || !form.address || !form.city) return;
 
     setLoading(true);
 
-    // Mock submission - will be replaced with Supabase
-    await new Promise(r => setTimeout(r, 1000));
-    console.log("Submitted:", { ...form, agentCode, nameWithSuffix: `${form.fullName} - /${agentCode}` });
+    const { error } = await supabase.from("customer_submissions").insert({
+      customer_name: `${form.fullName} - /${agentCode?.toUpperCase()}`,
+      phone: form.phone,
+      address: form.address,
+      city: form.city,
+      agent_id: agentId,
+    });
 
+    if (error) {
+      toast.error("Erreur lors de l'envoi. Veuillez réessayer.");
+      console.error(error);
+    } else {
+      setSubmitted(true);
+    }
     setLoading(false);
-    setSubmitted(true);
   };
+
+  if (agentNotFound) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold text-foreground">Lien invalide</h2>
+          <p className="text-muted-foreground">Ce lien de confirmation n'est pas valide.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -52,7 +88,6 @@ export default function CustomerForm() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <div className="bg-primary text-primary-foreground py-6 px-4 text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
           <Package className="h-6 w-6" />
@@ -61,61 +96,28 @@ export default function CustomerForm() {
         <p className="text-primary-foreground/80 text-sm">Confirmez votre commande</p>
       </div>
 
-      {/* Form */}
       <div className="flex-1 flex items-start justify-center px-4 py-8">
         <form onSubmit={handleSubmit} className="w-full max-w-md space-y-5 animate-fade-in">
           <div className="rounded-xl border bg-card p-6 space-y-4">
             <div>
               <Label htmlFor="fullName">Nom complet *</Label>
-              <Input
-                id="fullName"
-                value={form.fullName}
-                onChange={e => handleChange("fullName", e.target.value)}
-                placeholder="Votre nom complet"
-                required
-                className="mt-1.5"
-              />
+              <Input id="fullName" value={form.fullName} onChange={e => handleChange("fullName", e.target.value)} placeholder="Votre nom complet" required className="mt-1.5" />
             </div>
-
             <div>
               <Label htmlFor="phone">Téléphone *</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={form.phone}
-                onChange={e => handleChange("phone", e.target.value)}
-                placeholder="+212 6XX XX XX XX"
-                required
-                className="mt-1.5"
-              />
+              <Input id="phone" type="tel" value={form.phone} onChange={e => handleChange("phone", e.target.value)} placeholder="+212 6XX XX XX XX" required className="mt-1.5" />
             </div>
-
             <div>
               <Label htmlFor="address">Adresse *</Label>
-              <Input
-                id="address"
-                value={form.address}
-                onChange={e => handleChange("address", e.target.value)}
-                placeholder="Votre adresse de livraison"
-                required
-                className="mt-1.5"
-              />
+              <Input id="address" value={form.address} onChange={e => handleChange("address", e.target.value)} placeholder="Votre adresse de livraison" required className="mt-1.5" />
             </div>
-
             <div>
               <Label htmlFor="city">Ville *</Label>
-              <Input
-                id="city"
-                value={form.city}
-                onChange={e => handleChange("city", e.target.value)}
-                placeholder="Votre ville"
-                required
-                className="mt-1.5"
-              />
+              <Input id="city" value={form.city} onChange={e => handleChange("city", e.target.value)} placeholder="Votre ville" required className="mt-1.5" />
             </div>
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading}>
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading || !agentId}>
             {loading ? "Envoi en cours..." : "Confirmer ma commande"}
           </Button>
 

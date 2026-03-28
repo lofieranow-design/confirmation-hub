@@ -1,9 +1,11 @@
-import { CustomerSubmission } from "@/lib/mock-data";
+import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+type Submission = Tables<"customer_submissions">;
+
 interface SubmissionsTableProps {
-  submissions: CustomerSubmission[];
+  submissions: Submission[];
 }
 
 export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
