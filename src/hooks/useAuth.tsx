@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   agent: Agent | null;
+  isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, name: string, suffixCode: string) => Promise<{ error: Error | null }>;
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [agent, setAgent] = useState<Agent | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchAgent = async (userId: string) => {
@@ -32,15 +34,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAgent(data);
   };
 
+  const fetchRole = async (userId: string) => {
+    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    setIsAdmin(!!data);
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(() => fetchAgent(session.user.id), 0);
+          setTimeout(() => {
+            fetchAgent(session.user.id);
+            fetchRole(session.user.id);
+          }, 0);
         } else {
           setAgent(null);
+          setIsAdmin(false);
         }
         setLoading(false);
       }
@@ -51,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchAgent(session.user.id);
+        fetchRole(session.user.id);
       }
       setLoading(false);
     });
@@ -80,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, agent, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ session, user, agent, isAdmin, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
