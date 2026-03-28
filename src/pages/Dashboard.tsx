@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut } from "lucide-react";
+import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/StatCard";
 import { AgentLinkCard } from "@/components/AgentLinkCard";
@@ -13,7 +13,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Submission = Tables<"customer_submissions">;
 
 export default function Dashboard() {
-  const { agent, loading: authLoading, signOut } = useAuth();
+  const { agent, isAdmin, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [exportOpen, setExportOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
