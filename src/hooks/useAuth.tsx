@@ -40,20 +40,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Set loading to false quickly if no session exists
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          setTimeout(() => {
-            fetchAgent(session.user.id);
-            fetchRole(session.user.id);
-          }, 0);
+          // Fetch agent/role data in parallel without blocking
+          Promise.all([
+            fetchAgent(session.user.id),
+            fetchRole(session.user.id),
+          ]).finally(() => setLoading(false));
         } else {
           setAgent(null);
           setIsAdmin(false);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
@@ -61,10 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchAgent(session.user.id);
-        fetchRole(session.user.id);
+        Promise.all([
+          fetchAgent(session.user.id),
+          fetchRole(session.user.id),
+        ]).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
