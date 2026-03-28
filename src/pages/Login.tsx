@@ -1,0 +1,76 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Package, ArrowRight } from "lucide-react";
+
+export default function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    // Mock login - will be replaced with Supabase auth
+    await new Promise(r => setTimeout(r, 800));
+    setLoading(false);
+    navigate("/dashboard");
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="w-full max-w-sm space-y-8 animate-fade-in">
+        {/* Branding */}
+        <div className="text-center space-y-2">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-4">
+            <Package className="h-7 w-7 text-primary-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">ConfirmaPro</h1>
+          <p className="text-muted-foreground text-sm">Connectez-vous à votre espace agent</p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="rounded-xl border bg-card p-6 space-y-4">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="agent@confirma.ma"
+                required
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="mt-1.5"
+              />
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full h-12 text-base font-semibold gap-2" disabled={loading}>
+            {loading ? "Connexion..." : (
+              <>
+                Se connecter
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
