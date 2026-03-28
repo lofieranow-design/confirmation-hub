@@ -17,7 +17,7 @@ export default function CustomerForm() {
     fullName: "",
     phone: "",
     address: "",
-    city: "",
+    zone: "",
   });
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function CustomerForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agentId || !form.fullName || !form.phone || !form.address || !form.city) return;
+    if (!agentId || !form.fullName || !form.phone || !form.address || !form.zone) return;
 
     setLoading(true);
 
@@ -46,7 +46,7 @@ export default function CustomerForm() {
       customer_name: `${form.fullName} - /${agentCode?.toUpperCase()}`,
       phone: form.phone,
       address: form.address,
-      city: form.city,
+      city: form.zone,
       agent_id: agentId,
     });
 
@@ -108,12 +108,12 @@ export default function CustomerForm() {
               <Input id="phone" type="tel" value={form.phone} onChange={e => handleChange("phone", e.target.value)} placeholder="+212 6XX XX XX XX" required className="mt-1.5" />
             </div>
             <div>
-              <Label htmlFor="address">Adresse *</Label>
-              <Input id="address" value={form.address} onChange={e => handleChange("address", e.target.value)} placeholder="Votre adresse de livraison" required className="mt-1.5" />
+              <Label htmlFor="zone">Zone *</Label>
+              <Input id="zone" value={form.zone} onChange={e => handleChange("zone", e.target.value)} placeholder="Ex: Hay Salama/CASABLANCA" required className="mt-1.5" />
             </div>
             <div>
-              <Label htmlFor="city">Ville *</Label>
-              <Input id="city" value={form.city} onChange={e => handleChange("city", e.target.value)} placeholder="Votre ville" required className="mt-1.5" />
+              <Label htmlFor="address">Adresse complète *</Label>
+              <Input id="address" value={form.address} onChange={e => handleChange("address", e.target.value)} placeholder="Adresse complète du destinataire" required className="mt-1.5" />
             </div>
           </div>
 
