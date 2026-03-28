@@ -93,8 +93,14 @@ export default function Dashboard() {
             <h1 className="text-xl font-bold text-foreground tracking-tight">ConfirmaPro</h1>
             <p className="text-sm text-muted-foreground">Tableau de bord</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground hidden sm:block">{agent.name}</span>
+            {isAdmin && (
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate("/admin")}>
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>
