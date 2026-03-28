@@ -15,7 +15,7 @@ type Agent = Tables<"agents">;
 const ADMIN_EMAIL = "marouane@aarab.mks";
 
 export default function AdminPanel() {
-  const { isAdmin, loading: authLoading } = useAuth();
+  const { isAdmin, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
