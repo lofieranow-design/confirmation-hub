@@ -61,9 +61,9 @@ export default function AdminPanel() {
     setSaving(true);
     try {
       if (editingAgent) {
-        const { data, error } = await supabase.functions.invoke("manage-agents", {
-          body: { action: "update", agent_id: editingAgent.id, name: form.name, suffix_code: form.suffix_code, email: form.email },
-        });
+        const body: Record<string, string> = { action: "update", agent_id: editingAgent.id, name: form.name, suffix_code: form.suffix_code, email: form.email };
+        if (form.password) body.password = form.password;
+        const { data, error } = await supabase.functions.invoke("manage-agents", { body });
         if (error || data?.error) throw new Error(data?.error || error?.message);
         toast.success("Agent modifié avec succès");
       } else {
@@ -196,12 +196,10 @@ export default function AdminPanel() {
               <Label htmlFor="agent-email">Email</Label>
               <Input id="agent-email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="agent@confirma.ma" className="mt-1.5" />
             </div>
-            {!editingAgent && (
-              <div>
-                <Label htmlFor="agent-password">Mot de passe</Label>
-                <Input id="agent-password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="mt-1.5" />
-              </div>
-            )}
+            <div>
+              <Label htmlFor="agent-password">{editingAgent ? "Nouveau mot de passe (laisser vide pour ne pas changer)" : "Mot de passe"}</Label>
+              <Input id="agent-password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="mt-1.5" />
+            </div>
             <div>
               <Label htmlFor="agent-suffix">Code suffixe</Label>
               <Input id="agent-suffix" value={form.suffix_code} onChange={e => setForm(f => ({ ...f, suffix_code: e.target.value }))} placeholder="FZ" maxLength={3} className="mt-1.5 uppercase" />

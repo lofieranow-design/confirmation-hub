@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "update") {
-      const { agent_id, name, suffix_code, email } = payload;
+      const { agent_id, name, suffix_code, email, password } = payload;
       if (!agent_id) {
         return new Response(JSON.stringify({ error: "Missing agent_id" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -81,27 +81,40 @@ Deno.serve(async (req) => {
       }
 
       // Check if target is admin account
-      const { data: targetAgent } = await supabaseAdmin.from("agents").select("email").eq("id", agent_id).single();
+      const { data: targetAgent } = await supabaseAdmin.from("agents").select("email, user_id").eq("id", agent_id).single();
       if (targetAgent?.email === ADMIN_EMAIL) {
         return new Response(JSON.stringify({ error: "Le compte admin ne peut pas être modifié" }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
+      // Update agent profile fields
       const updates: Record<string, string> = {};
       if (name) updates.name = name;
       if (suffix_code) updates.suffix_code = suffix_code.toUpperCase();
       if (email) updates.email = email;
 
-      const { error: updateError } = await supabaseAdmin
-        .from("agents")
-        .update(updates)
-        .eq("id", agent_id);
+      if (Object.keys(updates).length > 0) {
+        const { error: updateError } = await supabaseAdmin
+          .from("agents")
+          .update(updates)
+          .eq("id", agent_id);
 
-      if (updateError) {
-        return new Response(JSON.stringify({ error: updateError.message }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        if (updateError) {
+          return new Response(JSON.stringify({ error: updateError.message }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      // Update password via auth if provided
+      if (password && targetAgent?.user_id) {
+        const { error: pwError } = await supabaseAdmin.auth.admin.updateUserById(targetAgent.user_id, { password });
+        if (pwError) {
+          return new Response(JSON.stringify({ error: pwError.message }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
 
       return new Response(JSON.stringify({ success: true }), {
