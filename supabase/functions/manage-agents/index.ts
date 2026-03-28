@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    const ADMIN_EMAIL = "marouane@aarab.mks";
     const { action, ...payload } = await req.json();
 
     if (action === "create") {
@@ -79,6 +80,14 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Check if target is admin account
+      const { data: targetAgent } = await supabaseAdmin.from("agents").select("email").eq("id", agent_id).single();
+      if (targetAgent?.email === ADMIN_EMAIL) {
+        return new Response(JSON.stringify({ error: "Le compte admin ne peut pas être modifié" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const updates: Record<string, string> = {};
       if (name) updates.name = name;
       if (suffix_code) updates.suffix_code = suffix_code.toUpperCase();
@@ -111,13 +120,19 @@ Deno.serve(async (req) => {
       // Get user_id from agent
       const { data: agentData } = await supabaseAdmin
         .from("agents")
-        .select("user_id")
+        .select("user_id, email")
         .eq("id", agent_id)
         .single();
 
       if (!agentData) {
         return new Response(JSON.stringify({ error: "Agent not found" }), {
           status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (agentData.email === ADMIN_EMAIL) {
+        return new Response(JSON.stringify({ error: "Le compte admin ne peut pas être supprimé" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 

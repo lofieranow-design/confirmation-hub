@@ -12,6 +12,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 type Agent = Tables<"agents">;
+const ADMIN_EMAIL = "marouane@aarab.mks";
 
 export default function AdminPanel() {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -150,7 +151,7 @@ export default function AdminPanel() {
                       Aucun agent pour le moment.
                     </td>
                   </tr>
-                ) : agents.map((agent) => (
+                ) : agents.filter(a => a.email !== ADMIN_EMAIL).map((agent) => (
                   <tr key={agent.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 text-sm font-medium text-card-foreground">{agent.name}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{agent.email}</td>
