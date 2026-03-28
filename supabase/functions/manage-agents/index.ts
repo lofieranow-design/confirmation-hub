@@ -80,6 +80,14 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Check if target is admin account
+      const { data: targetAgent } = await supabaseAdmin.from("agents").select("email").eq("id", agent_id).single();
+      if (targetAgent?.email === ADMIN_EMAIL) {
+        return new Response(JSON.stringify({ error: "Le compte admin ne peut pas être modifié" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const updates: Record<string, string> = {};
       if (name) updates.name = name;
       if (suffix_code) updates.suffix_code = suffix_code.toUpperCase();
