@@ -105,6 +105,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      agent_exists: { Args: { _agent_id: string }; Returns: boolean }
       get_agent_by_suffix: {
         Args: { code: string }
         Returns: {
