@@ -198,8 +198,11 @@ export default function AdminPanel() {
               <Input id="agent-name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Fatima Zahra" className="mt-1.5" />
             </div>
             <div>
-              <Label htmlFor="agent-email">Email</Label>
-              <Input id="agent-email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="agent@confirma.ma" className="mt-1.5" />
+              <Label htmlFor="agent-username">Email</Label>
+              <div className="flex mt-1.5">
+                <Input id="agent-username" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} placeholder="fatima" className="rounded-r-none" />
+                <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 bg-muted text-muted-foreground text-sm">@confirma.ma</span>
+              </div>
             </div>
             <div>
               <Label htmlFor="agent-password">{editingAgent ? "Nouveau mot de passe (laisser vide pour ne pas changer)" : "Mot de passe"}</Label>
