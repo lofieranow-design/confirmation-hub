@@ -55,7 +55,10 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `confirmations_${new Date().toISOString().split("T")[0]}.xlsx`;
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const fileName = `confirmations_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}h${pad(now.getMinutes())}`;
+      link.download = `${fileName}.xlsx`;
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
