@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Plus, Pencil, Trash2, Users } from "lucide-react";
+import { LogOut, Plus, Pencil, Trash2, Users, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { AdminAgentStats } from "@/components/AdminAgentStats";
+import { AdminProfileModal } from "@/components/AdminProfileModal";
 
 type Agent = Tables<"agents">;
 const ADMIN_EMAIL = "marouane@ecom.ma";
@@ -25,6 +26,7 @@ export default function AdminPanel() {
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [deletingAgent, setDeletingAgent] = useState<Agent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [form, setForm] = useState({ name: "", username: "", password: "", suffix_code: "" });
 
   useEffect(() => {
@@ -117,9 +119,17 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Gestion des Agents</h1>
-            <p className="text-sm text-muted-foreground">Administration</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setProfileOpen(true)}
+              className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center hover:opacity-90 transition-opacity"
+            >
+              <Package className="h-5 w-5 text-primary-foreground" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">Gestion des Agents</h1>
+              <p className="text-sm text-muted-foreground">Administration</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button onClick={openCreate} className="gap-2">
@@ -239,6 +249,7 @@ export default function AdminPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AdminProfileModal open={profileOpen} onOpenChange={setProfileOpen} />
     </div>
   );
 }
