@@ -12,7 +12,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 type Agent = Tables<"agents">;
-const ADMIN_EMAIL = "marouane@aarab.mks";
+const ADMIN_EMAIL = "marouane@ecom.ma";
 
 export default function AdminPanel() {
   const { isAdmin, loading: authLoading, signOut } = useAuth();
@@ -157,7 +157,7 @@ export default function AdminPanel() {
                     <td className="px-4 py-3 text-sm text-muted-foreground">{agent.email}</td>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
-                        /{agent.suffix_code}
+                        {agent.suffix_code}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
