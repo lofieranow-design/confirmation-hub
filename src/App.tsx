@@ -11,8 +11,6 @@ const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const CustomerForm = lazy(() => import("./pages/CustomerForm"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
-const Archives = lazy(() => import("./pages/Archives"));
-const OrderStatus = lazy(() => import("./pages/OrderStatus"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -46,8 +44,6 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/form/:agentCode" element={<CustomerForm />} />
               <Route path="/admin" element={<AdminPanel />} />
-              <Route path="/archives" element={<Archives />} />
-              <Route path="/order-status" element={<OrderStatus />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
