@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -24,56 +24,96 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [agent, setAgent] = useState<Agent | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const hydratedUserIdRef = useRef<string | null>(null);
+  const hydrationRequestIdRef = useRef(0);
 
-  const fetchAgent = async (userId: string) => {
-    const { data } = await supabase
+  const fetchAgent = useCallback(async (userId: string) => {
+    const { data, error } = await supabase
       .from("agents")
       .select("*")
       .eq("user_id", userId)
       .maybeSingle();
-    setAgent(data);
-  };
+    if (error) throw error;
+    return data;
+  }, []);
 
-  const fetchRole = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-    setIsAdmin(!!data);
-  };
+  const fetchRole = useCallback(async (userId: string) => {
+    const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (error) throw error;
+    return !!data;
+  }, []);
 
-  useEffect(() => {
-    // Set loading to false quickly if no session exists
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          // Fetch agent/role data in parallel without blocking
-          Promise.all([
-            fetchAgent(session.user.id),
-            fetchRole(session.user.id),
-          ]).finally(() => setLoading(false));
-        } else {
-          setAgent(null);
-          setIsAdmin(false);
+  const clearAuthState = useCallback(() => {
+    hydrationRequestIdRef.current += 1;
+    hydratedUserIdRef.current = null;
+    setAgent(null);
+    setIsAdmin(false);
+    setLoading(false);
+  }, []);
+
+  const hydrateUserState = useCallback(
+    async (nextUser: User, force = false) => {
+      if (!force && hydratedUserIdRef.current === nextUser.id) {
+        setLoading(false);
+        return;
+      }
+
+      const requestId = ++hydrationRequestIdRef.current;
+      setLoading(true);
+
+      try {
+        const [agentData, isAdminData] = await Promise.all([
+          fetchAgent(nextUser.id),
+          fetchRole(nextUser.id),
+        ]);
+
+        if (hydrationRequestIdRef.current !== requestId) return;
+
+        hydratedUserIdRef.current = nextUser.id;
+        setAgent(agentData);
+        setIsAdmin(isAdminData);
+      } catch (error) {
+        if (hydrationRequestIdRef.current !== requestId) return;
+
+        hydratedUserIdRef.current = null;
+        setAgent(null);
+        setIsAdmin(false);
+        console.error("Failed to hydrate auth state", error);
+      } finally {
+        if (hydrationRequestIdRef.current === requestId) {
           setLoading(false);
         }
+      }
+    },
+    [fetchAgent, fetchRole]
+  );
+
+  useEffect(() => {
+    const syncSession = (nextSession: Session | null, force = false) => {
+      setSession(nextSession);
+      const nextUser = nextSession?.user ?? null;
+      setUser(nextUser);
+
+      if (!nextUser) {
+        clearAuthState();
+        return;
+      }
+
+      void hydrateUserState(nextUser, force);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, nextSession) => {
+        syncSession(nextSession, event === "SIGNED_IN" || event === "USER_UPDATED");
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        Promise.all([
-          fetchAgent(session.user.id),
-          fetchRole(session.user.id),
-        ]).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
+      syncSession(session);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [clearAuthState, hydrateUserState]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
