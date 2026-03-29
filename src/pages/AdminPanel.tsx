@@ -35,11 +35,12 @@ export default function AdminPanel() {
   const pendingAgents = agents.filter(a => a.email !== ADMIN_EMAIL && !a.is_approved);
 
   useEffect(() => {
-    if (!authLoading && !isAdmin) {
-      navigate("/dashboard");
+    if (authLoading) return;
+    if (!isAdmin) {
+      navigate("/login");
       return;
     }
-    if (isAdmin) fetchAgents();
+    fetchAgents();
   }, [isAdmin, authLoading, navigate]);
 
   const fetchAgents = async () => {
