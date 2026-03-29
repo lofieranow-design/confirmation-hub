@@ -43,6 +43,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/form/:agentCode" element={<CustomerForm />} />
+              <Route path="/form" element={<CustomerForm />} />
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,6 +97,10 @@ function SearchableSelect({
 
 export default function CustomerForm() {
   const { agentCode } = useParams<{ agentCode: string }>();
+  const [searchParams] = useSearchParams();
+  const queryCode = searchParams.get("code");
+  // Support both /form/:agentCode (legacy) and /form?code=XYZ (new)
+  const resolvedCode = (agentCode || queryCode || "").toUpperCase() || undefined;
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [agentId, setAgentId] = useState<string | null>(null);
@@ -109,11 +113,9 @@ export default function CustomerForm() {
     zone: "",
   });
 
-  const decodedCode = agentCode ? decodeURIComponent(agentCode) : undefined;
-
   useEffect(() => {
-    if (decodedCode) {
-      supabase.rpc("get_agent_by_suffix", { code: decodedCode.toUpperCase() }).then(({ data }) => {
+    if (resolvedCode) {
+      supabase.rpc("get_agent_by_suffix", { code: resolvedCode }).then(({ data }) => {
         if (data && data.length > 0) {
           setAgentId(data[0].id);
         } else {
@@ -121,7 +123,7 @@ export default function CustomerForm() {
         }
       });
     }
-  }, [decodedCode]);
+  }, [resolvedCode]);
 
   const zoneOptions = useMemo(() => {
     if (!form.city) return [];
@@ -141,7 +143,7 @@ export default function CustomerForm() {
     const zoneValue = `${form.zone}/${form.city}`;
 
     const { error } = await supabase.from("customer_submissions").insert({
-      customer_name: `${form.fullName} - ${decodedCode?.toUpperCase()}`,
+      customer_name: `${form.fullName} - ${resolvedCode}`,
       phone: form.phone,
       address: form.address,
       city: zoneValue,
