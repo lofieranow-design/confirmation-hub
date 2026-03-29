@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, Archive, BarChart3, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ function get10DayPeriods(now: Date) {
   const year = now.getFullYear();
   const month = now.getMonth();
   const lastDay = new Date(year, month + 1, 0).getDate();
-
   return [
     { label: "1 – 10", start: new Date(year, month, 1), end: new Date(year, month, 10, 23, 59, 59, 999) },
     { label: "11 – 20", start: new Date(year, month, 11), end: new Date(year, month, 20, 23, 59, 59, 999) },
@@ -47,11 +46,8 @@ export default function Dashboard() {
 
     const channel = supabase
       .channel("submissions-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "customer_submissions" }, (payload) => {
-        const newSub = payload.new as Submission;
-        if (newSub.agent_id === agent.id) {
-          setSubmissions(prev => [newSub, ...prev]);
-        }
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "customer_submissions", filter: `agent_id=eq.${agent.id}` }, (payload) => {
+        setSubmissions(prev => [payload.new as Submission, ...prev]);
       })
       .subscribe();
 
@@ -59,15 +55,19 @@ export default function Dashboard() {
   }, [agent, authLoading, isAdmin, navigate]);
 
   const fetchSubmissions = async () => {
+    if (!agent) return;
     const { data } = await supabase
       .from("customer_submissions")
       .select("*")
+      .eq("agent_id", agent.id)
       .order("created_at", { ascending: false });
     setSubmissions(data || []);
     setLoadingData(false);
   };
 
-  const filteredByDate = submissions.filter(s => {
+  const hasDateFilter = fromDate || toDate;
+
+  const filteredByDate = useMemo(() => submissions.filter(s => {
     const d = new Date(s.created_at);
     if (fromDate) {
       const start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
@@ -78,30 +78,38 @@ export default function Dashboard() {
       if (d > end) return false;
     }
     return true;
-  });
+  }), [submissions, fromDate, toDate]);
 
-  const now = new Date();
-  const periods = get10DayPeriods(now);
-  const periodStats = periods.map(p => ({
+  const now = useMemo(() => new Date(), []);
+  const periods = useMemo(() => get10DayPeriods(now), [now]);
+
+  const periodStats = useMemo(() => periods.map(p => ({
     ...p,
     count: submissions.filter(s => {
       const d = new Date(s.created_at);
       return d >= p.start && d <= p.end;
     }).length,
-  }));
+  })), [periods, submissions]);
 
-  const chartSubmissions = submissions.filter(s => {
+  const chartSubmissions = useMemo(() => submissions.filter(s => {
     if (!chartFrom || !chartTo) return false;
     const d = new Date(s.created_at);
     const start = new Date(chartFrom.getFullYear(), chartFrom.getMonth(), chartFrom.getDate());
     const end = new Date(chartTo.getFullYear(), chartTo.getMonth(), chartTo.getDate(), 23, 59, 59, 999);
     return d >= start && d <= end;
-  });
+  }), [submissions, chartFrom, chartTo]);
 
-  const handleLogout = async () => {
+  const todaySubmissions = useMemo(() => {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return filteredByDate.filter(s => new Date(s.created_at) >= start);
+  }, [filteredByDate, now]);
+
+  const displayedSubmissions = hasDateFilter ? filteredByDate : todaySubmissions;
+
+  const handleLogout = useCallback(async () => {
     await signOut();
     navigate("/login");
-  };
+  }, [signOut, navigate]);
 
   if (authLoading || loadingData) {
     return (
@@ -113,7 +121,6 @@ export default function Dashboard() {
 
   if (!agent) return null;
 
-  const hasDateFilter = fromDate || toDate;
   const periodIcons = [CalendarDays, CalendarRange, CalendarCheck] as const;
   const periodVariants = ["period1", "period2", "period3"] as const;
   const monthName = now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
@@ -150,7 +157,6 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        {/* 10-day period stats */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-1">Statistiques en direct</h2>
           <p className="text-sm text-muted-foreground mb-4 capitalize">{monthName}</p>
@@ -174,7 +180,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Custom date range chart */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="h-5 w-5 text-primary" />
@@ -210,21 +215,13 @@ export default function Dashboard() {
             </div>
           </div>
           <SubmissionsTable
-            submissions={hasDateFilter ? filteredByDate : filteredByDate.filter(s => {
-              const now = new Date();
-              const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-              return new Date(s.created_at) >= start;
-            })}
+            submissions={displayedSubmissions}
             onDelete={(id) => setSubmissions((prev) => prev.filter((s) => s.id !== id))}
           />
         </section>
       </main>
 
-      <ExportModal open={exportOpen} onOpenChange={setExportOpen} submissions={hasDateFilter ? filteredByDate : filteredByDate.filter(s => {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        return new Date(s.created_at) >= start;
-      })} />
+      <ExportModal open={exportOpen} onOpenChange={setExportOpen} submissions={displayedSubmissions} />
     </div>
   );
 }
