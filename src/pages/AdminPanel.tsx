@@ -43,13 +43,14 @@ export default function AdminPanel() {
 
   const openCreate = () => {
     setEditingAgent(null);
-    setForm({ name: "", email: "", password: "", suffix_code: "" });
+    setForm({ name: "", username: "", password: "", suffix_code: "" });
     setFormOpen(true);
   };
 
   const openEdit = (agent: Agent) => {
     setEditingAgent(agent);
-    setForm({ name: agent.name, email: agent.email, password: "", suffix_code: agent.suffix_code });
+    const username = agent.email.replace("@confirma.ma", "");
+    setForm({ name: agent.name, username, password: "", suffix_code: agent.suffix_code });
     setFormOpen(true);
   };
 
