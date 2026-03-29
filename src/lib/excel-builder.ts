@@ -105,9 +105,9 @@ export async function buildExcelWorkbook(
   submissions.forEach((sub, i) => {
     const row = ws1.getRow(i + 3);
     row.getCell(2).value = sub.customer_name ?? "";
-    const phoneStr = (sub.phone ?? "").replace(/[^0-9]/g, "");
-    const phoneNum = parseInt(phoneStr, 10);
-    row.getCell(3).value = isNaN(phoneNum) ? sub.phone ?? "" : phoneNum;
+    const phoneCell = row.getCell(3);
+    phoneCell.value = sub.phone ?? "";
+    phoneCell.numFmt = "@";
     row.getCell(4).value = sub.city ?? "";
     row.getCell(5).value = sub.address ?? "";
     if (form.so) row.getCell(6).value = form.so;
