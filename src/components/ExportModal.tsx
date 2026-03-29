@@ -1,5 +1,4 @@
 import { useState } from "react";
-import ExcelJS from "exceljs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { FileSpreadsheet, Syringe, Download } from "lucide-react";
 import { toast } from "sonner";
+import { buildExcelWorkbook } from "@/lib/excel-builder";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Submission = Tables<"customer_submissions">;
@@ -50,52 +50,7 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
     setGenerating(true);
 
     try {
-      const base = import.meta.env.BASE_URL || "/";
-      const templateUrl = `${base}template.xlsx`.replace("//", "/");
-      const response = await fetch(templateUrl, { cache: "no-store" });
-
-      if (!response.ok) {
-        throw new Error("Template Excel introuvable");
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(arrayBuffer);
-
-      const worksheet = workbook.worksheets[0];
-
-      submissions.forEach((sub, index) => {
-        const rowNum = index + 3; // data starts at row 3
-        const row = worksheet.getRow(rowNum);
-
-        row.getCell(2).value = sub.customer_name ?? "";
-        row.getCell(3).value = sub.phone ?? "";
-        row.getCell(4).value = sub.city ?? "";
-        row.getCell(5).value = sub.address ?? "";
-
-        if (form.so) {
-          row.getCell(6).value = form.so;
-        }
-
-        row.getCell(7).value = form.nom_marchandise;
-        row.getCell(8).value = form.montant_total;
-
-        if (form.autoriser_ouverture) {
-          row.getCell(9).value = form.autoriser_ouverture;
-        }
-
-        if (form.remarque) {
-          row.getCell(10).value = form.remarque;
-        }
-
-        row.commit();
-      });
-
-      const buffer = await workbook.xlsx.writeBuffer();
-
-      const blob = new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
+      const blob = await buildExcelWorkbook(submissions, form);
 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
