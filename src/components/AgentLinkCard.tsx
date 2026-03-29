@@ -9,7 +9,7 @@ interface AgentLinkCardProps {
 export function AgentLinkCard({ suffixCode }: AgentLinkCardProps) {
   const [copied, setCopied] = useState(false);
   const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-  const link = `${window.location.origin}${basePath}form/${encodeURIComponent(suffixCode)}`;
+  const link = `${window.location.origin}${basePath}form?code=${encodeURIComponent(suffixCode)}`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(link);
