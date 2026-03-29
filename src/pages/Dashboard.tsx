@@ -156,6 +156,12 @@ export default function Dashboard() {
                 value={p.count}
                 icon={periodIcons[i]}
                 variant={periodVariants[i]}
+                active={activePeriod === i}
+                onClick={() => {
+                  setActivePeriod(i);
+                  setChartFrom(p.start);
+                  setChartTo(p.end);
+                }}
               />
             ))}
           </div>
