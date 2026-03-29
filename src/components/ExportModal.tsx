@@ -1,5 +1,4 @@
 import { useState } from "react";
-import ExcelJS from "exceljs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { FileSpreadsheet, Syringe, Download } from "lucide-react";
 import { toast } from "sonner";
+import { buildExcelWorkbook } from "@/lib/excel-builder";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Submission = Tables<"customer_submissions">;
