@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const ADMIN_EMAIL = "marouane@aarab.mks";
+    const ADMIN_EMAIL = "marouane@ecom.ma";
     const { action, ...payload } = await req.json();
 
     if (action === "create") {
