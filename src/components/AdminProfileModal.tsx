@@ -14,7 +14,7 @@ interface AdminProfileModalProps {
 }
 
 export function AdminProfileModal({ open, onOpenChange }: AdminProfileModalProps) {
-  const { agent } = useAuth();
+  const { agent, signOut } = useAuth();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
@@ -51,14 +51,12 @@ export function AdminProfileModal({ open, onOpenChange }: AdminProfileModalProps
       const { data, error } = await supabase.functions.invoke("manage-agents", { body });
       if (error || data?.error) throw new Error(data?.error || error?.message);
 
-      toast.success("Profil mis à jour avec succès !");
+      toast.success("Profil mis à jour avec succès ! Veuillez vous reconnecter.");
       setEditing(false);
       setPassword("");
-      // Reload page to refresh auth state
-      if (email && email !== agent?.email) {
-        toast.info("Votre email a été modifié. Veuillez vous reconnecter.");
-        window.location.reload();
-      }
+      // Sign out and redirect to login after any credential change
+      await signOut();
+      window.location.href = "/login";
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur lors de la mise à jour");
     } finally {
