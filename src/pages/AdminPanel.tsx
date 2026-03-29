@@ -215,7 +215,7 @@ export default function AdminPanel() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFormOpen(false)}>Annuler</Button>
-            <Button onClick={handleSave} disabled={saving || !form.name || !form.email || !form.suffix_code}>
+            <Button onClick={handleSave} disabled={saving || !form.name || !form.username || !form.suffix_code}>
               {saving ? "Enregistrement..." : editingAgent ? "Modifier" : "Créer"}
             </Button>
           </DialogFooter>
