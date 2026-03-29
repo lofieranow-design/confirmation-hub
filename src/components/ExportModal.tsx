@@ -59,43 +59,41 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
       }
 
       const arrayBuffer = await response.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: "array", cellStyles: true });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
+
+      const worksheet = workbook.worksheets[0];
 
       submissions.forEach((sub, index) => {
-        const rowIndex = index + 2;
+        const rowNum = index + 3; // data starts at row 3
+        const row = worksheet.getRow(rowNum);
 
-        worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 1 })] = { t: "s", v: sub.customer_name ?? "" };
-        worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 2 })] = { t: "s", v: sub.phone ?? "" };
-        worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 3 })] = { t: "s", v: sub.city ?? "" };
-        worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 4 })] = { t: "s", v: sub.address ?? "" };
+        row.getCell(2).value = sub.customer_name ?? "";
+        row.getCell(3).value = sub.phone ?? "";
+        row.getCell(4).value = sub.city ?? "";
+        row.getCell(5).value = sub.address ?? "";
 
         if (form.so) {
-          worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 5 })] = { t: "s", v: form.so };
+          row.getCell(6).value = form.so;
         }
 
-        worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 6 })] = { t: "s", v: form.nom_marchandise };
-        worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 7 })] = { t: "s", v: form.montant_total };
+        row.getCell(7).value = form.nom_marchandise;
+        row.getCell(8).value = form.montant_total;
 
         if (form.autoriser_ouverture) {
-          worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 8 })] = { t: "s", v: form.autoriser_ouverture };
+          row.getCell(9).value = form.autoriser_ouverture;
         }
 
         if (form.remarque) {
-          worksheet[XLSX.utils.encode_cell({ r: rowIndex, c: 9 })] = { t: "s", v: form.remarque };
+          row.getCell(10).value = form.remarque;
         }
+
+        row.commit();
       });
 
-      const lastRowIndex = Math.max(submissions.length + 1, 2);
-      worksheet["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: lastRowIndex, c: 9 } });
+      const buffer = await workbook.xlsx.writeBuffer();
 
-      const output = XLSX.write(workbook, {
-        bookType: "xlsx",
-        type: "array",
-        cellStyles: true,
-      });
-
-      const blob = new Blob([output], {
+      const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
