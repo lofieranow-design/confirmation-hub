@@ -22,9 +22,12 @@ const iconColors = {
   period3: "text-[hsl(265,50%,55%)]",
 };
 
-export function StatCard({ title, value, icon: Icon, variant, subtitle }: StatCardProps) {
+export function StatCard({ title, value, icon: Icon, variant, subtitle, onClick, active }: StatCardProps) {
   return (
-    <div className={`rounded-xl border p-6 animate-fade-in ${variantClasses[variant]}`}>
+    <div
+      className={`rounded-xl border p-6 animate-fade-in transition-all ${variantClasses[variant]} ${onClick ? "cursor-pointer hover:scale-[1.02] hover:shadow-md" : ""} ${active ? "ring-2 ring-primary shadow-md" : ""}`}
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between mb-3">
         <div>
           <span className="text-sm font-medium text-muted-foreground">{title}</span>
