@@ -16,7 +16,7 @@ import { AdminAgentStats } from "@/components/AdminAgentStats";
 import { AdminProfileModal } from "@/components/AdminProfileModal";
 
 type Agent = Tables<"agents">;
-const ADMIN_EMAIL = "marouane@ecom.ma";
+const ADMIN_EMAIL = "admin@ecom.ma";
 
 export default function AdminPanel() {
   const { isAdmin, loading: authLoading, signOut } = useAuth();
