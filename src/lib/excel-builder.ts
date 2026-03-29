@@ -105,12 +105,15 @@ export async function buildExcelWorkbook(
   submissions.forEach((sub, i) => {
     const row = ws1.getRow(i + 3);
     row.getCell(2).value = sub.customer_name ?? "";
-    row.getCell(3).value = sub.phone ?? "";
+    const phoneCell = row.getCell(3);
+    phoneCell.value = sub.phone ?? "";
+    phoneCell.numFmt = "@"; // force text format to preserve + prefix
     row.getCell(4).value = sub.city ?? "";
     row.getCell(5).value = sub.address ?? "";
     if (form.so) row.getCell(6).value = form.so;
     row.getCell(7).value = form.nom_marchandise;
-    row.getCell(8).value = form.montant_total;
+    const montant = parseFloat(form.montant_total);
+    row.getCell(8).value = isNaN(montant) ? form.montant_total : montant;
     if (form.autoriser_ouverture) row.getCell(9).value = form.autoriser_ouverture;
     if (form.remarque) row.getCell(10).value = form.remarque;
 
