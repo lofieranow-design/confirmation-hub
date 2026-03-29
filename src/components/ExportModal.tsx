@@ -50,7 +50,9 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
     setGenerating(true);
 
     try {
-      const response = await fetch("/template.xlsx", { cache: "no-store" });
+      const base = import.meta.env.BASE_URL || "/";
+      const templateUrl = `${base}template.xlsx`.replace("//", "/");
+      const response = await fetch(templateUrl, { cache: "no-store" });
 
       if (!response.ok) {
         throw new Error("Template Excel introuvable");
