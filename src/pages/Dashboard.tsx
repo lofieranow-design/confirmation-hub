@@ -1,13 +1,16 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, Archive, BarChart3, ClipboardList } from "lucide-react";
+import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, BarChart3, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StatCard } from "@/components/StatCard";
 import { AgentLinkCard } from "@/components/AgentLinkCard";
 import { SubmissionsTable } from "@/components/SubmissionsTable";
 import { ExportModal } from "@/components/ExportModal";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
 import { ConfirmationChart } from "@/components/ConfirmationChart";
+import { ArchiveTab } from "@/components/dashboard/ArchiveTab";
+import { StatusTab } from "@/components/dashboard/StatusTab";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -49,7 +52,6 @@ export default function Dashboard() {
   const periods = useMemo(() => get10DayPeriods(now), [now]);
   const hasDateFilter = fromDate || toDate;
 
-  // Fetch paginated submissions for table display
   const fetchPage = useCallback(async (pageNum: number) => {
     if (!agent) return;
     setLoadingData(true);
@@ -70,7 +72,6 @@ export default function Dashboard() {
         query = query.lte("created_at", end.toISOString());
       }
     } else {
-      // Today only
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       query = query.gte("created_at", todayStart.toISOString());
     }
@@ -85,7 +86,6 @@ export default function Dashboard() {
     setLoadingData(false);
   }, [agent, fromDate, toDate, hasDateFilter, now]);
 
-  // Fetch period counts (just counts, not all data)
   const fetchPeriodCounts = useCallback(async () => {
     if (!agent) return;
     const counts = await Promise.all(
@@ -102,13 +102,11 @@ export default function Dashboard() {
     setPeriodCounts(counts);
   }, [agent, periods]);
 
-  // Fetch chart data (only when chart range selected)
   const fetchChartData = useCallback(async () => {
     if (!agent || !chartFrom || !chartTo) { setChartSubmissions([]); return; }
     const start = new Date(chartFrom.getFullYear(), chartFrom.getMonth(), chartFrom.getDate());
     const end = new Date(chartTo.getFullYear(), chartTo.getMonth(), chartTo.getDate(), 23, 59, 59, 999);
     
-    // For chart we need all records in range - fetch in batches
     let allData: Submission[] = [];
     let offset = 0;
     const batchSize = 1000;
@@ -129,21 +127,17 @@ export default function Dashboard() {
     setChartSubmissions(allData);
   }, [agent, chartFrom, chartTo]);
 
-  // Fetch all submissions for export (called when export modal opens)
   const fetchAllForExport = useCallback(async () => {
     if (!agent) return [];
-
     let allData: Submission[] = [];
     let offset = 0;
     const batchSize = 1000;
-
     while (true) {
       let query = supabase
         .from("customer_submissions")
         .select("*")
         .eq("agent_id", agent.id)
         .order("created_at", { ascending: false });
-
       if (hasDateFilter) {
         if (fromDate) {
           const start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
@@ -157,7 +151,6 @@ export default function Dashboard() {
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         query = query.gte("created_at", todayStart.toISOString());
       }
-
       query = query.range(offset, offset + batchSize - 1);
       const { data } = await query;
       if (!data || data.length === 0) break;
@@ -180,7 +173,6 @@ export default function Dashboard() {
     const channel = supabase
       .channel("submissions-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "customer_submissions", filter: `agent_id=eq.${agent.id}` }, () => {
-        // Refresh current page and counts on new insert
         fetchPage(0);
         fetchPeriodCounts();
         setPage(0);
@@ -190,19 +182,16 @@ export default function Dashboard() {
     return () => { supabase.removeChannel(channel); };
   }, [agent, authLoading, isAdmin, navigate]);
 
-  // Re-fetch when filters change
   useEffect(() => {
     if (!agent || authLoading) return;
     setPage(0);
     fetchPage(0);
   }, [fromDate, toDate]);
 
-  // Re-fetch chart when chart dates change
   useEffect(() => {
     fetchChartData();
   }, [chartFrom, chartTo, fetchChartData]);
 
-  // Re-fetch when page changes
   useEffect(() => {
     fetchPage(page);
   }, [page]);
@@ -238,25 +227,16 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">ConfirmaPro</h1>
-            <p className="text-sm text-muted-foreground">Tableau de bord</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+              <Package className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">ConfirmaPro</h1>
+              <p className="text-sm text-muted-foreground">Tableau de bord</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2 hidden sm:flex" onClick={() => navigate("/order-status")}>
-              <ClipboardList className="h-4 w-4" />
-              Status
-            </Button>
-            <Button variant="outline" size="icon" className="sm:hidden" onClick={() => navigate("/order-status")}>
-              <ClipboardList className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2 hidden sm:flex" onClick={() => navigate("/archives")}>
-              <Archive className="h-4 w-4" />
-              Archives
-            </Button>
-            <Button variant="outline" size="icon" className="sm:hidden" onClick={() => navigate("/archives")}>
-              <Archive className="h-4 w-4" />
-            </Button>
             <span className="text-sm font-medium text-foreground hidden sm:block">{agent.name}</span>
             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
@@ -266,6 +246,7 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
+        {/* Statistics & Chart section */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-1">Statistiques en direct</h2>
           <p className="text-sm text-muted-foreground mb-4 capitalize">{monthName}</p>
@@ -310,55 +291,64 @@ export default function Dashboard() {
           <AgentLinkCard suffixCode={agent.suffix_code} />
         </section>
 
-        <section>
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-            <h2 className="text-lg font-semibold text-foreground">
-              {hasDateFilter ? "Confirmations filtrées" : "Confirmations du jour"}
-              <span className="text-sm font-normal text-muted-foreground ml-2">({totalCount})</span>
-            </h2>
-            <div className="flex items-center gap-2 flex-wrap">
-              <DateRangeFilter from={fromDate} to={toDate} onFromChange={setFromDate} onToChange={setToDate} />
-              <Button onClick={handleExportOpen} className="gap-2">
-                <FileSpreadsheet className="h-4 w-4" />
-                Exporter
-              </Button>
-            </div>
-          </div>
-          <SubmissionsTable
-            submissions={submissions}
-            onDelete={(id) => {
-              setSubmissions((prev) => prev.filter((s) => s.id !== id));
-              setTotalCount((prev) => prev - 1);
-            }}
-            page={page}
-            pageSize={PAGE_SIZE}
-          />
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-muted-foreground">
-                Page {page + 1} sur {totalPages}
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page === 0}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  Précédent
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Suivant
-                </Button>
+        {/* Tabbed content */}
+        <Tabs defaultValue="today" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="today">Confirmations du jour</TabsTrigger>
+            <TabsTrigger value="archives">Archives</TabsTrigger>
+            <TabsTrigger value="status">Status</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="today">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <h2 className="text-lg font-semibold text-foreground">
+                  {hasDateFilter ? "Confirmations filtrées" : "Confirmations du jour"}
+                  <span className="text-sm font-normal text-muted-foreground ml-2">({totalCount})</span>
+                </h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <DateRangeFilter from={fromDate} to={toDate} onFromChange={setFromDate} onToChange={setToDate} />
+                  <Button onClick={handleExportOpen} className="gap-2">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Exporter
+                  </Button>
+                </div>
               </div>
+              <SubmissionsTable
+                submissions={submissions}
+                onDelete={(id) => {
+                  setSubmissions((prev) => prev.filter((s) => s.id !== id));
+                  setTotalCount((prev) => prev - 1);
+                }}
+                page={page}
+                pageSize={PAGE_SIZE}
+              />
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Page {page + 1} sur {totalPages}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                      Précédent
+                    </Button>
+                    <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+                      Suivant
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </section>
+          </TabsContent>
+
+          <TabsContent value="archives">
+            <ArchiveTab agentId={agent.id} />
+          </TabsContent>
+
+          <TabsContent value="status">
+            <StatusTab agentId={agent.id} />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <ExportModal
