@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ClipboardList, Filter } from "lucide-react";
 import { format } from "date-fns";
@@ -49,15 +49,17 @@ export default function OrderStatus() {
   }, [agent, authLoading, isAdmin, navigate]);
 
   const fetchAll = async () => {
+    if (!agent) return;
     const { data } = await supabase
       .from("customer_submissions")
-      .select("*")
+      .select("id,customer_name,phone,city,address,created_at,agent_id,order_status")
+      .eq("agent_id", agent.id)
       .order("created_at", { ascending: false });
     setSubmissions((data as Submission[]) || []);
     setLoadingData(false);
   };
 
-  const filtered = submissions.filter(s => {
+  const filtered = useMemo(() => submissions.filter(s => {
     const d = new Date(s.created_at);
     if (fromDate) {
       const start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
@@ -72,21 +74,18 @@ export default function OrderStatus() {
       if (s.order_status !== statusFilter) return false;
     }
     return true;
-  });
+  }), [submissions, fromDate, toDate, statusFilter]);
 
-  const handleStatusChange = async (id: string, newStatus: StatusValue, currentStatus: string | null) => {
+  const handleStatusChange = useCallback(async (id: string, newStatus: StatusValue, currentStatus: string | null) => {
     const finalStatus = currentStatus === newStatus ? null : newStatus;
     setUpdating(id);
-
     setSubmissions(prev =>
       prev.map(s => s.id === id ? { ...s, order_status: finalStatus } : s)
     );
-
     const { error } = await supabase
       .from("customer_submissions")
       .update({ order_status: finalStatus })
       .eq("id", id);
-
     if (error) {
       toast.error("Erreur lors de la mise à jour du statut");
       setSubmissions(prev =>
@@ -94,22 +93,12 @@ export default function OrderStatus() {
       );
     }
     setUpdating(null);
-  };
+  }, []);
 
-  const getStatusLabel = (status: string | null) => {
-    const opt = STATUS_OPTIONS.find(o => o.value === status);
-    return opt ? opt.label : "—";
-  };
-
-  const getStatusColor = (status: string | null) => {
-    const opt = STATUS_OPTIONS.find(o => o.value === status);
-    return opt ? opt.color : "text-muted-foreground";
-  };
-
-  const statusCounts = STATUS_OPTIONS.map(opt => ({
+  const statusCounts = useMemo(() => STATUS_OPTIONS.map(opt => ({
     ...opt,
     count: submissions.filter(s => s.order_status === opt.value).length,
-  }));
+  })), [submissions]);
 
   if (authLoading || loadingData) {
     return (
@@ -141,7 +130,6 @@ export default function OrderStatus() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-6">
-        {/* Status summary cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {statusCounts.map(s => (
             <div
@@ -155,7 +143,6 @@ export default function OrderStatus() {
           ))}
         </div>
 
-        {/* Filters */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3 flex-wrap">
             <DateRangeFilter from={fromDate} to={toDate} onFromChange={setFromDate} onToChange={setToDate} />
@@ -178,7 +165,6 @@ export default function OrderStatus() {
           </p>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="rounded-xl border bg-card p-12 text-center">
             <ClipboardList className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
@@ -222,8 +208,8 @@ export default function OrderStatus() {
                           />
                         </td>
                       ))}
-                      <td className={`px-3 py-3 text-center text-xs font-medium ${getStatusColor(sub.order_status)}`}>
-                        {getStatusLabel(sub.order_status)}
+                      <td className={`px-3 py-3 text-center text-xs font-medium ${STATUS_OPTIONS.find(o => o.value === sub.order_status)?.color || "text-muted-foreground"}`}>
+                        {STATUS_OPTIONS.find(o => o.value === sub.order_status)?.label || "—"}
                       </td>
                     </tr>
                   ))}
