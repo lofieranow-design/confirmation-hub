@@ -47,50 +47,52 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      const XLSX = await import("xlsx");
+      const ExcelJS = await import("exceljs");
+      const { saveAs } = await import("file-saver");
 
-      // Fetch the original template
       const response = await fetch("/template.xlsx");
       const arrayBuffer = await response.arrayBuffer();
-      const wb = XLSX.read(arrayBuffer, { type: "array" });
 
-      const ws = wb.Sheets[wb.SheetNames[0]];
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(arrayBuffer);
 
-      // Data starts at row 3 (index 2) — row 1 is group headers, row 2 is column headers
+      const ws = wb.worksheets[0];
+
+      // Data starts at row 3 — row 1 is group headers, row 2 is column headers
       submissions.forEach((sub, i) => {
-        const row = i + 3; // Excel row (1-indexed), data starts row 3
-        // A: Waybill (empty)
+        const row = i + 3;
+        const excelRow = ws.getRow(row);
         // B: Nom
-        ws[XLSX.utils.encode_cell({ r: row - 1, c: 1 })] = { t: "s", v: sub.customer_name };
+        excelRow.getCell(2).value = sub.customer_name;
         // C: Téléphone
-        ws[XLSX.utils.encode_cell({ r: row - 1, c: 2 })] = { t: "s", v: sub.phone };
+        excelRow.getCell(3).value = sub.phone;
         // D: Zone
-        ws[XLSX.utils.encode_cell({ r: row - 1, c: 3 })] = { t: "s", v: sub.city };
+        excelRow.getCell(4).value = sub.city;
         // E: Adresse complète
-        ws[XLSX.utils.encode_cell({ r: row - 1, c: 4 })] = { t: "s", v: sub.address };
+        excelRow.getCell(5).value = sub.address;
         // F: S.O.
         if (form.so) {
-          ws[XLSX.utils.encode_cell({ r: row - 1, c: 5 })] = { t: "s", v: form.so };
+          excelRow.getCell(6).value = form.so;
         }
         // G: Nom de la marchandise
-        ws[XLSX.utils.encode_cell({ r: row - 1, c: 6 })] = { t: "s", v: form.nom_marchandise };
+        excelRow.getCell(7).value = form.nom_marchandise;
         // H: Montant total
-        ws[XLSX.utils.encode_cell({ r: row - 1, c: 7 })] = { t: "s", v: form.montant_total };
+        excelRow.getCell(8).value = form.montant_total;
         // I: Autoriser l'ouverture
         if (form.autoriser_ouverture) {
-          ws[XLSX.utils.encode_cell({ r: row - 1, c: 8 })] = { t: "s", v: form.autoriser_ouverture };
+          excelRow.getCell(9).value = form.autoriser_ouverture;
         }
         // J: Remarque
         if (form.remarque) {
-          ws[XLSX.utils.encode_cell({ r: row - 1, c: 9 })] = { t: "s", v: form.remarque };
+          excelRow.getCell(10).value = form.remarque;
         }
+        excelRow.commit();
       });
 
-      // Update the sheet range
-      const lastRow = submissions.length + 2;
-      ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: lastRow, c: 9 } });
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      saveAs(blob, `confirmations_${new Date().toISOString().split("T")[0]}.xlsx`);
 
-      XLSX.writeFile(wb, `confirmations_${new Date().toISOString().split("T")[0]}.xlsx`);
       onOpenChange(false);
       setInjected(false);
     } catch (err) {
