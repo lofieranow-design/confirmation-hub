@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import CustomerForm from "./pages/CustomerForm.tsx";
 import AdminPanel from "./pages/AdminPanel.tsx";
 import Archives from "./pages/Archives.tsx";
+import OrderStatus from "./pages/OrderStatus.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/form/:agentCode" element={<CustomerForm />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/archives" element={<Archives />} />
+            <Route path="/order-status" element={<OrderStatus />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

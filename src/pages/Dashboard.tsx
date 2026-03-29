@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, Archive, BarChart3 } from "lucide-react";
+import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, Archive, BarChart3, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/StatCard";
 import { AgentLinkCard } from "@/components/AgentLinkCard";
@@ -127,6 +127,13 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground">Tableau de bord</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2 hidden sm:flex" onClick={() => navigate("/order-status")}>
+              <ClipboardList className="h-4 w-4" />
+              Status
+            </Button>
+            <Button variant="outline" size="icon" className="sm:hidden" onClick={() => navigate("/order-status")}>
+              <ClipboardList className="h-4 w-4" />
+            </Button>
             <Button variant="outline" size="sm" className="gap-2 hidden sm:flex" onClick={() => navigate("/archives")}>
               <Archive className="h-4 w-4" />
               Archives
