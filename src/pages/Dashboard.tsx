@@ -6,6 +6,7 @@ import { StatCard } from "@/components/StatCard";
 import { AgentLinkCard } from "@/components/AgentLinkCard";
 import { SubmissionsTable } from "@/components/SubmissionsTable";
 import { ExportModal } from "@/components/ExportModal";
+import { DateRangeFilter } from "@/components/DateRangeFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -18,17 +19,13 @@ export default function Dashboard() {
   const [exportOpen, setExportOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (authLoading) return;
-    if (isAdmin) {
-      navigate("/admin");
-      return;
-    }
-    if (!agent) {
-      navigate("/login");
-      return;
-    }
+    if (isAdmin) { navigate("/admin"); return; }
+    if (!agent) { navigate("/login"); return; }
     setLoadingData(true);
     fetchSubmissions();
 
@@ -53,6 +50,19 @@ export default function Dashboard() {
     setSubmissions(data || []);
     setLoadingData(false);
   };
+
+  const filteredByDate = submissions.filter(s => {
+    const d = new Date(s.created_at);
+    if (fromDate) {
+      const start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+      if (d < start) return false;
+    }
+    if (toDate) {
+      const end = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate(), 23, 59, 59, 999);
+      if (d > end) return false;
+    }
+    return true;
+  });
 
   const getStats = () => {
     const now = new Date();
@@ -83,11 +93,7 @@ export default function Dashboard() {
   if (!agent) return null;
 
   const stats = getStats();
-  const todaySubmissions = submissions.filter(s => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return new Date(s.created_at) >= start;
-  });
+  const hasDateFilter = fromDate || toDate;
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,21 +127,34 @@ export default function Dashboard() {
         </section>
 
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Confirmations du jour</h2>
-            <Button onClick={() => setExportOpen(true)} className="gap-2">
-              <FileSpreadsheet className="h-4 w-4" />
-              Exporter Excel
-            </Button>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+            <h2 className="text-lg font-semibold text-foreground">
+              {hasDateFilter ? "Confirmations filtrées" : "Confirmations du jour"}
+            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <DateRangeFilter from={fromDate} to={toDate} onFromChange={setFromDate} onToChange={setToDate} />
+              <Button onClick={() => setExportOpen(true)} className="gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                Exporter
+              </Button>
+            </div>
           </div>
           <SubmissionsTable
-            submissions={todaySubmissions}
+            submissions={hasDateFilter ? filteredByDate : filteredByDate.filter(s => {
+              const now = new Date();
+              const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+              return new Date(s.created_at) >= start;
+            })}
             onDelete={(id) => setSubmissions((prev) => prev.filter((s) => s.id !== id))}
           />
         </section>
       </main>
 
-      <ExportModal open={exportOpen} onOpenChange={setExportOpen} submissions={todaySubmissions} />
+      <ExportModal open={exportOpen} onOpenChange={setExportOpen} submissions={hasDateFilter ? filteredByDate : filteredByDate.filter(s => {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        return new Date(s.created_at) >= start;
+      })} />
     </div>
   );
 }
