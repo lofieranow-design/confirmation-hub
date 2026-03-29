@@ -17,19 +17,20 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [exportOpen, setExportOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [loadingData, setLoadingData] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && isAdmin) {
+    if (authLoading) return;
+    if (isAdmin) {
       navigate("/admin");
       return;
     }
-    if (!authLoading && !agent) {
+    if (!agent) {
       navigate("/login");
       return;
     }
-    if (agent) {
-      fetchSubmissions();
+    setLoadingData(true);
+    fetchSubmissions();
 
       const channel = supabase
         .channel("submissions-realtime")
