@@ -1,17 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, Archive } from "lucide-react";
+import { CalendarDays, CalendarRange, CalendarCheck, FileSpreadsheet, LogOut, Archive, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/StatCard";
 import { AgentLinkCard } from "@/components/AgentLinkCard";
 import { SubmissionsTable } from "@/components/SubmissionsTable";
 import { ExportModal } from "@/components/ExportModal";
 import { DateRangeFilter } from "@/components/DateRangeFilter";
+import { ConfirmationChart } from "@/components/ConfirmationChart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Submission = Tables<"customer_submissions">;
+
+function get10DayPeriods(now: Date) {
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+
+  return [
+    { label: "1 – 10", start: new Date(year, month, 1), end: new Date(year, month, 10, 23, 59, 59, 999) },
+    { label: "11 – 20", start: new Date(year, month, 11), end: new Date(year, month, 20, 23, 59, 59, 999) },
+    { label: `21 – ${lastDay}`, start: new Date(year, month, 21), end: new Date(year, month, lastDay, 23, 59, 59, 999) },
+  ];
+}
 
 export default function Dashboard() {
   const { agent, isAdmin, loading: authLoading, signOut } = useAuth();
@@ -21,6 +34,8 @@ export default function Dashboard() {
   const [loadingData, setLoadingData] = useState(false);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [chartFrom, setChartFrom] = useState<Date | undefined>(undefined);
+  const [chartTo, setChartTo] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (authLoading) return;
@@ -64,18 +79,23 @@ export default function Dashboard() {
     return true;
   });
 
-  const getStats = () => {
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(startOfDay);
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    return {
-      today: submissions.filter(s => new Date(s.created_at) >= startOfDay).length,
-      week: submissions.filter(s => new Date(s.created_at) >= startOfWeek).length,
-      month: submissions.filter(s => new Date(s.created_at) >= startOfMonth).length,
-    };
-  };
+  const now = new Date();
+  const periods = get10DayPeriods(now);
+  const periodStats = periods.map(p => ({
+    ...p,
+    count: submissions.filter(s => {
+      const d = new Date(s.created_at);
+      return d >= p.start && d <= p.end;
+    }).length,
+  }));
+
+  const chartSubmissions = submissions.filter(s => {
+    if (!chartFrom || !chartTo) return false;
+    const d = new Date(s.created_at);
+    const start = new Date(chartFrom.getFullYear(), chartFrom.getMonth(), chartFrom.getDate());
+    const end = new Date(chartTo.getFullYear(), chartTo.getMonth(), chartTo.getDate(), 23, 59, 59, 999);
+    return d >= start && d <= end;
+  });
 
   const handleLogout = async () => {
     await signOut();
@@ -92,8 +112,10 @@ export default function Dashboard() {
 
   if (!agent) return null;
 
-  const stats = getStats();
   const hasDateFilter = fromDate || toDate;
+  const periodIcons = [CalendarDays, CalendarRange, CalendarCheck] as const;
+  const periodVariants = ["period1", "period2", "period3"] as const;
+  const monthName = now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
   return (
     <div className="min-h-screen bg-background">
@@ -120,12 +142,39 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
+        {/* 10-day period stats */}
         <section>
-          <h2 className="text-lg font-semibold text-foreground mb-4">Statistiques en direct</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-1">Statistiques en direct</h2>
+          <p className="text-sm text-muted-foreground mb-4 capitalize">{monthName}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <StatCard title="Aujourd'hui" value={stats.today} icon={CalendarDays} variant="today" />
-            <StatCard title="Cette semaine" value={stats.week} icon={CalendarRange} variant="week" />
-            <StatCard title="Ce mois" value={stats.month} icon={CalendarCheck} variant="month" />
+            {periodStats.map((p, i) => (
+              <StatCard
+                key={i}
+                title={p.label}
+                subtitle={`${p.start.getDate()}/${p.start.getMonth() + 1} – ${p.end.getDate()}/${p.end.getMonth() + 1}`}
+                value={p.count}
+                icon={periodIcons[i]}
+                variant={periodVariants[i]}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Custom date range chart */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Analyse par période</h2>
+          </div>
+          <div className="rounded-xl border bg-card p-5 space-y-4">
+            <DateRangeFilter from={chartFrom} to={chartTo} onFromChange={setChartFrom} onToChange={setChartTo} />
+            {chartFrom && chartTo ? (
+              <ConfirmationChart submissions={chartSubmissions} from={chartFrom} to={chartTo} />
+            ) : (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                Sélectionnez une date de début et de fin pour afficher le graphique.
+              </p>
+            )}
           </div>
         </section>
 
