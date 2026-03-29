@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,19 +97,10 @@ function SearchableSelect({
 
 export default function CustomerForm() {
   const { agentCode } = useParams<{ agentCode: string }>();
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [agentId, setAgentId] = useState<string | null>(null);
-  const [agentNotFound, setAgentNotFound] = useState(false);
-  const [form, setForm] = useState({
-    fullName: "",
-    phone: "",
-    address: "",
-    city: "",
-    zone: "",
-  });
-
-  const decodedCode = agentCode ? decodeURIComponent(agentCode) : undefined;
+  const [searchParams] = useSearchParams();
+  const queryCode = searchParams.get("code");
+  // Support both /form/:agentCode (legacy) and /form?code=XYZ (new)
+  const resolvedCode = (agentCode || queryCode || "").toUpperCase() || undefined;
 
   useEffect(() => {
     if (decodedCode) {
