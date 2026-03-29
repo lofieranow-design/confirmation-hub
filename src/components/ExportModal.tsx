@@ -48,56 +48,61 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      const ExcelJS = await import("exceljs");
-      const { saveAs } = await import("file-saver");
+      const XLSX = await import("xlsx");
 
+      // Fetch the base template
       const response = await fetch("/template.xlsx");
+      if (!response.ok) throw new Error("Impossible de charger le template");
       const arrayBuffer = await response.arrayBuffer();
+      const wb = XLSX.read(new Uint8Array(arrayBuffer), { type: "array" });
 
-      const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(arrayBuffer);
+      const ws = wb.Sheets[wb.SheetNames[0]];
 
-      const ws = wb.worksheets[0];
-
-      // Data starts at row 3 — row 1 is group headers, row 2 is column headers
+      // Data starts at row 3 (0-indexed row 2) — row 1 group headers, row 2 column headers
       submissions.forEach((sub, i) => {
-        const row = i + 3;
-        const excelRow = ws.getRow(row);
-        // B: Nom
-        excelRow.getCell(2).value = sub.customer_name;
-        // C: Téléphone
-        excelRow.getCell(3).value = sub.phone;
-        // D: Zone
-        excelRow.getCell(4).value = sub.city;
-        // E: Adresse complète
-        excelRow.getCell(5).value = sub.address;
-        // F: S.O.
-        if (form.so) {
-          excelRow.getCell(6).value = form.so;
-        }
-        // G: Nom de la marchandise
-        excelRow.getCell(7).value = form.nom_marchandise;
-        // H: Montant total
-        excelRow.getCell(8).value = form.montant_total;
-        // I: Autoriser l'ouverture
-        if (form.autoriser_ouverture) {
-          excelRow.getCell(9).value = form.autoriser_ouverture;
-        }
-        // J: Remarque
-        if (form.remarque) {
-          excelRow.getCell(10).value = form.remarque;
-        }
-        excelRow.commit();
+        const r = i + 2; // 0-indexed row
+        // B: Nom (col 1)
+        ws[XLSX.utils.encode_cell({ r, c: 1 })] = { t: "s", v: sub.customer_name };
+        // C: Téléphone (col 2)
+        ws[XLSX.utils.encode_cell({ r, c: 2 })] = { t: "s", v: sub.phone };
+        // D: Zone (col 3)
+        ws[XLSX.utils.encode_cell({ r, c: 3 })] = { t: "s", v: sub.city };
+        // E: Adresse complète (col 4)
+        ws[XLSX.utils.encode_cell({ r, c: 4 })] = { t: "s", v: sub.address };
+        // F: S.O. (col 5)
+        if (form.so) ws[XLSX.utils.encode_cell({ r, c: 5 })] = { t: "s", v: form.so };
+        // G: Nom de la marchandise (col 6)
+        ws[XLSX.utils.encode_cell({ r, c: 6 })] = { t: "s", v: form.nom_marchandise };
+        // H: Montant total (col 7)
+        ws[XLSX.utils.encode_cell({ r, c: 7 })] = { t: "n", v: Number(form.montant_total) || 0 };
+        // I: Autoriser l'ouverture (col 8)
+        if (form.autoriser_ouverture) ws[XLSX.utils.encode_cell({ r, c: 8 })] = { t: "s", v: form.autoriser_ouverture };
+        // J: Remarque (col 9)
+        if (form.remarque) ws[XLSX.utils.encode_cell({ r, c: 9 })] = { t: "s", v: form.remarque };
       });
 
-      const buffer = await wb.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      saveAs(blob, `confirmations_${new Date().toISOString().split("T")[0]}.xlsx`);
+      // Update sheet range to include all data rows
+      const lastRow = Math.max(submissions.length + 2, 2);
+      ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: lastRow, c: 9 } });
 
+      // Generate and download
+      const wbOut = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([wbOut], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `confirmations_${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("Fichier Excel téléchargé avec succès");
       onOpenChange(false);
       setInjected(false);
     } catch (err) {
       console.error("Export failed", err);
+      toast.error("Erreur lors de l'export: " + (err instanceof Error ? err.message : "Erreur inconnue"));
     } finally {
       setGenerating(false);
     }
