@@ -25,7 +25,7 @@ export default function AdminPanel() {
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [deletingAgent, setDeletingAgent] = useState<Agent | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", suffix_code: "" });
+  const [form, setForm] = useState({ name: "", username: "", password: "", suffix_code: "" });
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -43,13 +43,14 @@ export default function AdminPanel() {
 
   const openCreate = () => {
     setEditingAgent(null);
-    setForm({ name: "", email: "", password: "", suffix_code: "" });
+    setForm({ name: "", username: "", password: "", suffix_code: "" });
     setFormOpen(true);
   };
 
   const openEdit = (agent: Agent) => {
     setEditingAgent(agent);
-    setForm({ name: agent.name, email: agent.email, password: "", suffix_code: agent.suffix_code });
+    const username = agent.email.replace("@confirma.ma", "");
+    setForm({ name: agent.name, username, password: "", suffix_code: agent.suffix_code });
     setFormOpen(true);
   };
 
@@ -60,9 +61,10 @@ export default function AdminPanel() {
 
   const handleSave = async () => {
     setSaving(true);
+    const email = `${form.username}@confirma.ma`;
     try {
       if (editingAgent) {
-        const body: Record<string, string> = { action: "update", agent_id: editingAgent.id, name: form.name, suffix_code: form.suffix_code, email: form.email };
+        const body: Record<string, string> = { action: "update", agent_id: editingAgent.id, name: form.name, suffix_code: form.suffix_code, email };
         if (form.password) body.password = form.password;
         const { data, error } = await supabase.functions.invoke("manage-agents", { body });
         if (error || data?.error) throw new Error(data?.error || error?.message);
@@ -70,7 +72,7 @@ export default function AdminPanel() {
       } else {
         if (!form.password) { toast.error("Mot de passe requis"); setSaving(false); return; }
         const { data, error } = await supabase.functions.invoke("manage-agents", {
-          body: { action: "create", email: form.email, password: form.password, name: form.name, suffix_code: form.suffix_code },
+          body: { action: "create", email, password: form.password, name: form.name, suffix_code: form.suffix_code },
         });
         if (error || data?.error) throw new Error(data?.error || error?.message);
         toast.success("Agent créé avec succès");
@@ -196,8 +198,11 @@ export default function AdminPanel() {
               <Input id="agent-name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Fatima Zahra" className="mt-1.5" />
             </div>
             <div>
-              <Label htmlFor="agent-email">Email</Label>
-              <Input id="agent-email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="agent@confirma.ma" className="mt-1.5" />
+              <Label htmlFor="agent-username">Email</Label>
+              <div className="flex mt-1.5">
+                <Input id="agent-username" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} placeholder="fatima" className="rounded-r-none" />
+                <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 bg-muted text-muted-foreground text-sm">@confirma.ma</span>
+              </div>
             </div>
             <div>
               <Label htmlFor="agent-password">{editingAgent ? "Nouveau mot de passe (laisser vide pour ne pas changer)" : "Mot de passe"}</Label>
@@ -210,7 +215,7 @@ export default function AdminPanel() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFormOpen(false)}>Annuler</Button>
-            <Button onClick={handleSave} disabled={saving || !form.name || !form.email || !form.suffix_code}>
+            <Button onClick={handleSave} disabled={saving || !form.name || !form.username || !form.suffix_code}>
               {saving ? "Enregistrement..." : editingAgent ? "Modifier" : "Créer"}
             </Button>
           </DialogFooter>
