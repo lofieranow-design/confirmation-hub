@@ -25,6 +25,7 @@ export async function buildExcelWorkbook(
   ws1.getColumn(1).width = 11.5;
   ws1.getColumn(2).width = 15.5;
   ws1.getColumn(3).width = 14.66;
+  ws1.getColumn(3).numFmt = "@"; // entire column as text — suppresses "Number Stored as Text"
   ws1.getColumn(4).width = 31.66;
   ws1.getColumn(5).width = 21.5;
   ws1.getColumn(6).width = 12.83;
