@@ -26,6 +26,7 @@ export default function AdminPanel() {
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [deletingAgent, setDeletingAgent] = useState<Agent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [form, setForm] = useState({ name: "", username: "", password: "", suffix_code: "" });
 
   useEffect(() => {
