@@ -303,16 +303,13 @@ export default function Dashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <h2 className="text-lg font-semibold text-foreground">
-                  {hasDateFilter ? "Confirmations filtrées" : "Confirmations du jour"}
+                  Confirmations du jour
                   <span className="text-sm font-normal text-muted-foreground ml-2">({totalCount})</span>
                 </h2>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <DateRangeFilter from={fromDate} to={toDate} onFromChange={setFromDate} onToChange={setToDate} />
-                  <Button onClick={handleExportOpen} className="gap-2">
-                    <FileSpreadsheet className="h-4 w-4" />
-                    Exporter
-                  </Button>
-                </div>
+                <Button onClick={handleExportOpen} className="gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Exporter
+                </Button>
               </div>
               <SubmissionsTable
                 submissions={submissions}
