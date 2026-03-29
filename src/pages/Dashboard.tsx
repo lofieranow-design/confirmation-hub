@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [chartFrom, setChartFrom] = useState<Date | undefined>(undefined);
   const [chartTo, setChartTo] = useState<Date | undefined>(undefined);
+  const [activePeriod, setActivePeriod] = useState<number | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
