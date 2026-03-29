@@ -37,7 +37,7 @@ export default function Login() {
       if (error) {
         toast.error(error.message);
       } else {
-        navigate("/dashboard");
+        window.location.href = "/dashboard";
       }
     }
     setLoading(false);
