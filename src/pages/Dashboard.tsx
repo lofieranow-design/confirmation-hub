@@ -128,7 +128,10 @@ export default function Dashboard() {
               Exporter Excel
             </Button>
           </div>
-          <SubmissionsTable submissions={todaySubmissions} />
+          <SubmissionsTable
+            submissions={todaySubmissions}
+            onDelete={(id) => setSubmissions((prev) => prev.filter((s) => s.id !== id))}
+          />
         </section>
       </main>
 
