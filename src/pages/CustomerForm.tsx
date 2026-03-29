@@ -101,10 +101,21 @@ export default function CustomerForm() {
   const queryCode = searchParams.get("code");
   // Support both /form/:agentCode (legacy) and /form?code=XYZ (new)
   const resolvedCode = (agentCode || queryCode || "").toUpperCase() || undefined;
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [agentId, setAgentId] = useState<string | null>(null);
+  const [agentNotFound, setAgentNotFound] = useState(false);
+  const [form, setForm] = useState({
+    fullName: "",
+    phone: "",
+    address: "",
+    city: "",
+    zone: "",
+  });
 
   useEffect(() => {
-    if (decodedCode) {
-      supabase.rpc("get_agent_by_suffix", { code: decodedCode.toUpperCase() }).then(({ data }) => {
+    if (resolvedCode) {
+      supabase.rpc("get_agent_by_suffix", { code: resolvedCode }).then(({ data }) => {
         if (data && data.length > 0) {
           setAgentId(data[0].id);
         } else {
@@ -112,7 +123,7 @@ export default function CustomerForm() {
         }
       });
     }
-  }, [decodedCode]);
+  }, [resolvedCode]);
 
   const zoneOptions = useMemo(() => {
     if (!form.city) return [];
