@@ -174,7 +174,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-foreground">Analyse par période</h2>
           </div>
           <div className="rounded-xl border bg-card p-5 space-y-4">
-            <DateRangeFilter from={chartFrom} to={chartTo} onFromChange={setChartFrom} onToChange={setChartTo} />
+            <DateRangeFilter from={chartFrom} to={chartTo} onFromChange={(d) => { setChartFrom(d); setActivePeriod(null); }} onToChange={(d) => { setChartTo(d); setActivePeriod(null); }} />
             {chartFrom && chartTo ? (
               <ConfirmationChart submissions={chartSubmissions} from={chartFrom} to={chartTo} />
             ) : (
