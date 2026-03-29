@@ -11,7 +11,7 @@ interface AuthContextType {
   agent: Agent | null;
   isAdmin: boolean;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; isAdmin: boolean | null }>;
   signUp: (email: string, password: string, name: string, suffixCode: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -116,8 +116,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearAuthState, hydrateUserState]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error ? new Error(error.message) : null };
+    setLoading(true);
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setLoading(false);
+      return { error: new Error(error.message), isAdmin: null };
+    }
+
+    const signedInUser = data.user ?? data.session?.user;
+
+    if (!signedInUser) {
+      setLoading(false);
+      return { error: new Error("Impossible de récupérer le compte connecté."), isAdmin: null };
+    }
+
+    try {
+      const isAdminUser = await fetchRole(signedInUser.id);
+      return { error: null, isAdmin: isAdminUser };
+    } catch (roleError) {
+      setLoading(false);
+      return {
+        error: roleError instanceof Error ? roleError : new Error("Impossible de vérifier le rôle du compte."),
+        isAdmin: null,
+      };
+    }
   };
 
   const signUp = async (email: string, password: string, name: string, suffixCode: string) => {
