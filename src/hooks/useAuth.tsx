@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from("agents")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
     setAgent(data);
   };
 
