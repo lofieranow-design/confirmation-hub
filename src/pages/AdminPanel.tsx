@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { AdminAgentStats } from "@/components/AdminAgentStats";
 
 type Agent = Tables<"agents">;
 const ADMIN_EMAIL = "marouane@ecom.ma";
@@ -130,7 +131,9 @@ export default function AdminPanel() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 space-y-8">
+        <AdminAgentStats agents={agents} />
+
         <div className="rounded-xl border bg-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
