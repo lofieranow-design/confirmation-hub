@@ -122,14 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       setLoading(false);
-      return { error: new Error(error.message), isAdmin: null };
+      return { error: new Error(error.message), isAdmin: null, isApproved: null };
     }
 
     const signedInUser = data.user ?? data.session?.user;
 
     if (!signedInUser) {
       setLoading(false);
-      return { error: new Error("Impossible de récupérer le compte connecté."), isAdmin: null };
+      return { error: new Error("Impossible de récupérer le compte connecté."), isAdmin: null, isApproved: null };
     }
 
     try {
