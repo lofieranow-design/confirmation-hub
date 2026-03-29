@@ -1,15 +1,34 @@
+import { useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Radio } from "lucide-react";
+import { Radio, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type Submission = Tables<"customer_submissions">;
 
 interface SubmissionsTableProps {
   submissions: Submission[];
+  onDelete?: (id: string) => void;
 }
 
-export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
+export function SubmissionsTable({ submissions, onDelete }: SubmissionsTableProps) {
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    const { error } = await supabase.from("customer_submissions").delete().eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la suppression");
+    } else {
+      toast.success("Confirmation supprimée");
+      onDelete?.(id);
+    }
+    setDeleting(null);
+  };
+
   if (submissions.length === 0) {
     return (
       <div className="rounded-xl border bg-card p-12 text-center animate-fade-in">
@@ -27,7 +46,6 @@ export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          {/* Two-section header matching the Excel template */}
           <thead>
             <tr>
               <th className="bg-[hsl(180,30%,85%)] border border-border px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
@@ -38,6 +56,9 @@ export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
               </th>
               <th className="bg-[hsl(180,30%,85%)] border border-border px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
                 Date
+              </th>
+              <th className="bg-[hsl(180,30%,85%)] border border-border px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
+                Action
               </th>
             </tr>
             <tr>
@@ -57,6 +78,17 @@ export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
                 <td className="border border-border px-3 py-2.5 text-muted-foreground">{sub.address}</td>
                 <td className="border border-border px-3 py-2.5 text-muted-foreground text-center">
                   {format(new Date(sub.created_at), "dd MMM yyyy, HH:mm", { locale: fr })}
+                </td>
+                <td className="border border-border px-3 py-2.5 text-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDelete(sub.id)}
+                    disabled={deleting === sub.id}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </td>
               </tr>
             ))}
