@@ -25,7 +25,6 @@ export async function buildExcelWorkbook(
   ws1.getColumn(1).width = 11.5;
   ws1.getColumn(2).width = 15.5;
   ws1.getColumn(3).width = 14.66;
-  ws1.getColumn(3).numFmt = "@"; // entire column as text — suppresses "Number Stored as Text"
   ws1.getColumn(4).width = 31.66;
   ws1.getColumn(5).width = 21.5;
   ws1.getColumn(6).width = 12.83;
@@ -106,9 +105,9 @@ export async function buildExcelWorkbook(
   submissions.forEach((sub, i) => {
     const row = ws1.getRow(i + 3);
     row.getCell(2).value = sub.customer_name ?? "";
-    const phoneCell = row.getCell(3);
-    phoneCell.value = sub.phone ?? "";
-    phoneCell.numFmt = "@"; // force text format to preserve + prefix
+    const phoneStr = (sub.phone ?? "").replace(/[^0-9]/g, "");
+    const phoneNum = parseInt(phoneStr, 10);
+    row.getCell(3).value = isNaN(phoneNum) ? sub.phone ?? "" : phoneNum;
     row.getCell(4).value = sub.city ?? "";
     row.getCell(5).value = sub.address ?? "";
     if (form.so) row.getCell(6).value = form.so;
