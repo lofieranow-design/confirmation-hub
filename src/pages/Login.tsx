@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,40 +17,46 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<LoginMode>("agent");
-  const justSignedIn = useRef(false);
 
-  // After auth fully loads post-login, check role match
   useEffect(() => {
-    if (authLoading || !session) return;
-
-    if (justSignedIn.current) {
-      justSignedIn.current = false;
-      // Now isAdmin is resolved — enforce role/mode match
-      if (mode === "admin" && !isAdmin) {
-        toast.error("Ce compte n'est pas un compte administrateur.");
-        signOut();
-        return;
-      }
-      if (mode === "agent" && isAdmin) {
-        toast.error("Ce compte est un compte administrateur. Utilisez le formulaire Admin.");
-        signOut();
-        return;
-      }
-    }
-
-    // Redirect to correct page
+    if (authLoading || !session || loading) return;
     navigate(isAdmin ? "/admin" : "/dashboard");
-  }, [session, authLoading, isAdmin, navigate, mode, signOut]);
+  }, [session, authLoading, isAdmin, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    justSignedIn.current = true;
-    const { error } = await signIn(email, password);
+    const selectedMode = mode;
+    const { error, isAdmin: roleIsAdmin } = await signIn(email, password);
+
     if (error) {
       toast.error(error.message);
-      justSignedIn.current = false;
+      setLoading(false);
+      return;
     }
+
+    if (roleIsAdmin === null) {
+      toast.error("Impossible de vérifier le rôle du compte.");
+      await signOut();
+      setLoading(false);
+      return;
+    }
+
+    if (selectedMode === "admin" && !roleIsAdmin) {
+      toast.error("Ce compte n'est pas un compte administrateur.");
+      await signOut();
+      setLoading(false);
+      return;
+    }
+
+    if (selectedMode === "agent" && roleIsAdmin) {
+      toast.error("Ce compte est un compte administrateur. Utilisez le formulaire Admin.");
+      await signOut();
+      setLoading(false);
+      return;
+    }
+
+    navigate(roleIsAdmin ? "/admin" : "/dashboard");
     setLoading(false);
   };
 
