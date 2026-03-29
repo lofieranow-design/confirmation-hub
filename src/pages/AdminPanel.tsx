@@ -61,9 +61,10 @@ export default function AdminPanel() {
 
   const handleSave = async () => {
     setSaving(true);
+    const email = `${form.username}@confirma.ma`;
     try {
       if (editingAgent) {
-        const body: Record<string, string> = { action: "update", agent_id: editingAgent.id, name: form.name, suffix_code: form.suffix_code, email: form.email };
+        const body: Record<string, string> = { action: "update", agent_id: editingAgent.id, name: form.name, suffix_code: form.suffix_code, email };
         if (form.password) body.password = form.password;
         const { data, error } = await supabase.functions.invoke("manage-agents", { body });
         if (error || data?.error) throw new Error(data?.error || error?.message);
@@ -71,7 +72,7 @@ export default function AdminPanel() {
       } else {
         if (!form.password) { toast.error("Mot de passe requis"); setSaving(false); return; }
         const { data, error } = await supabase.functions.invoke("manage-agents", {
-          body: { action: "create", email: form.email, password: form.password, name: form.name, suffix_code: form.suffix_code },
+          body: { action: "create", email, password: form.password, name: form.name, suffix_code: form.suffix_code },
         });
         if (error || data?.error) throw new Error(data?.error || error?.message);
         toast.success("Agent créé avec succès");
