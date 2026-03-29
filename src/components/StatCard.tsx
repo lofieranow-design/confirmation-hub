@@ -6,6 +6,8 @@ interface StatCardProps {
   icon: LucideIcon;
   variant: "period1" | "period2" | "period3";
   subtitle?: string;
+  onClick?: () => void;
+  active?: boolean;
 }
 
 const variantClasses = {
