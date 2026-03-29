@@ -56,7 +56,7 @@ export function AdminAgentStats({ agents }: AdminAgentStatsProps) {
   });
 
   const agentStats = agents
-    .filter(a => a.email !== "marouane@ecom.ma")
+    .filter(a => a.email !== "admin@ecom.ma")
     .map(agent => ({
       ...agent,
       count: filtered.filter(s => s.agent_id === agent.id).length,
