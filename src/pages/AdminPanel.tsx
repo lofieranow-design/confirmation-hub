@@ -333,7 +333,7 @@ export default function AdminPanel() {
             </div>
             <div>
               <Label htmlFor="agent-suffix">Code suffixe</Label>
-              <Input id="agent-suffix" value={form.suffix_code} onChange={e => setForm(f => ({ ...f, suffix_code: e.target.value }))} placeholder="FZ" maxLength={3} className="mt-1.5 uppercase" />
+              <Input id="agent-suffix" value={form.suffix_code} onChange={e => setForm(f => ({ ...f, suffix_code: e.target.value.replace(/[^a-zA-Z0-9]/g, '') }))} placeholder="FZ" maxLength={3} className="mt-1.5 uppercase" />
             </div>
           </div>
           <DialogFooter>
