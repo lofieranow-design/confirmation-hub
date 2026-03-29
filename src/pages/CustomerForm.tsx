@@ -109,9 +109,11 @@ export default function CustomerForm() {
     zone: "",
   });
 
+  const decodedCode = agentCode ? decodeURIComponent(agentCode) : undefined;
+
   useEffect(() => {
-    if (agentCode) {
-      supabase.rpc("get_agent_by_suffix", { code: agentCode.toUpperCase() }).then(({ data }) => {
+    if (decodedCode) {
+      supabase.rpc("get_agent_by_suffix", { code: decodedCode.toUpperCase() }).then(({ data }) => {
         if (data && data.length > 0) {
           setAgentId(data[0].id);
         } else {
@@ -119,7 +121,7 @@ export default function CustomerForm() {
         }
       });
     }
-  }, [agentCode]);
+  }, [decodedCode]);
 
   const zoneOptions = useMemo(() => {
     if (!form.city) return [];
@@ -139,7 +141,7 @@ export default function CustomerForm() {
     const zoneValue = `${form.zone}/${form.city}`;
 
     const { error } = await supabase.from("customer_submissions").insert({
-      customer_name: `${form.fullName} - ${agentCode?.toUpperCase()}`,
+      customer_name: `${form.fullName} - ${decodedCode?.toUpperCase()}`,
       phone: form.phone,
       address: form.address,
       city: zoneValue,
