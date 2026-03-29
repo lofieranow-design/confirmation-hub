@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,48 +12,47 @@ type LoginMode = "admin" | "agent";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn, session, isAdmin, loading: authLoading } = useAuth();
+  const { signIn, signOut, session, isAdmin, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<LoginMode>("agent");
+  const justSignedIn = useRef(false);
 
+  // After auth fully loads post-login, check role match
   useEffect(() => {
-    if (!authLoading && session) {
-      navigate(isAdmin ? "/admin" : "/dashboard");
+    if (authLoading || !session) return;
+
+    if (justSignedIn.current) {
+      justSignedIn.current = false;
+      // Now isAdmin is resolved — enforce role/mode match
+      if (mode === "admin" && !isAdmin) {
+        toast.error("Ce compte n'est pas un compte administrateur.");
+        signOut();
+        return;
+      }
+      if (mode === "agent" && isAdmin) {
+        toast.error("Ce compte est un compte administrateur. Utilisez le formulaire Admin.");
+        signOut();
+        return;
+      }
     }
-  }, [session, authLoading, isAdmin, navigate]);
+
+    // Redirect to correct page
+    navigate(isAdmin ? "/admin" : "/dashboard");
+  }, [session, authLoading, isAdmin, navigate, mode, signOut]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    justSignedIn.current = true;
     const { error } = await signIn(email, password);
     if (error) {
       toast.error(error.message);
-      setLoading(false);
-      return;
+      justSignedIn.current = false;
     }
-    // After sign in, check role match — handled via onAuthStateChange
-    // We need to wait for role to be fetched, so we do a quick check
     setLoading(false);
   };
-
-  // After auth loads, enforce role/mode match
-  useEffect(() => {
-    if (authLoading || !session) return;
-    if (mode === "admin" && !isAdmin) {
-      toast.error("Ce compte n'est pas un compte administrateur.");
-      // sign out since wrong mode
-      import("@/integrations/supabase/client").then(({ supabase }) => {
-        supabase.auth.signOut();
-      });
-    } else if (mode === "agent" && isAdmin) {
-      toast.error("Ce compte est un compte administrateur. Utilisez le formulaire Admin.");
-      import("@/integrations/supabase/client").then(({ supabase }) => {
-        supabase.auth.signOut();
-      });
-    }
-  }, [session, authLoading, isAdmin, mode]);
 
   const isAdminMode = mode === "admin";
 
