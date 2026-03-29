@@ -89,12 +89,6 @@ export default function Login() {
             )}
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground">
-            {isSignUp ? "Déjà un compte ?" : "Pas encore de compte ?"}{" "}
-            <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary font-medium hover:underline">
-              {isSignUp ? "Se connecter" : "Créer un compte"}
-            </button>
-          </p>
         </form>
       </div>
     </div>
