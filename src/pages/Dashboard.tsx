@@ -17,33 +17,33 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [exportOpen, setExportOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [loadingData, setLoadingData] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && isAdmin) {
+    if (authLoading) return;
+    if (isAdmin) {
       navigate("/admin");
       return;
     }
-    if (!authLoading && !agent) {
+    if (!agent) {
       navigate("/login");
       return;
     }
-    if (agent) {
-      fetchSubmissions();
+    setLoadingData(true);
+    fetchSubmissions();
 
-      const channel = supabase
-        .channel("submissions-realtime")
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "customer_submissions" }, (payload) => {
-          const newSub = payload.new as Submission;
-          if (newSub.agent_id === agent.id) {
-            setSubmissions(prev => [newSub, ...prev]);
-          }
-        })
-        .subscribe();
+    const channel = supabase
+      .channel("submissions-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "customer_submissions" }, (payload) => {
+        const newSub = payload.new as Submission;
+        if (newSub.agent_id === agent.id) {
+          setSubmissions(prev => [newSub, ...prev]);
+        }
+      })
+      .subscribe();
 
-      return () => { supabase.removeChannel(channel); };
-    }
-  }, [agent, authLoading, navigate]);
+    return () => { supabase.removeChannel(channel); };
+  }, [agent, authLoading, isAdmin, navigate]);
 
   const fetchSubmissions = async () => {
     const { data } = await supabase
