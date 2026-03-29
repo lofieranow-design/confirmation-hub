@@ -67,6 +67,12 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Auto-approve agents created by admin
+      await supabaseAdmin
+        .from("agents")
+        .update({ is_approved: true })
+        .eq("user_id", newUser.user.id);
+
       return new Response(JSON.stringify({ success: true, user_id: newUser.user.id }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -155,6 +161,124 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: deleteError.message }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "approve") {
+      const { agent_id } = payload;
+      if (!agent_id) {
+        return new Response(JSON.stringify({ error: "Missing agent_id" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { error: approveError } = await supabaseAdmin
+        .from("agents")
+        .update({ is_approved: true })
+        .eq("id", agent_id);
+
+      if (approveError) {
+        return new Response(JSON.stringify({ error: approveError.message }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "reject") {
+      const { agent_id } = payload;
+      if (!agent_id) {
+        return new Response(JSON.stringify({ error: "Missing agent_id" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Get user_id then delete the auth user (cascades to agents + roles)
+      const { data: agentData } = await supabaseAdmin
+        .from("agents")
+        .select("user_id, email")
+        .eq("id", agent_id)
+        .single();
+
+      if (!agentData) {
+        return new Response(JSON.stringify({ error: "Agent not found" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (agentData.email === ADMIN_EMAIL) {
+        return new Response(JSON.stringify({ error: "Cannot reject admin account" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(agentData.user_id);
+      if (deleteError) {
+        return new Response(JSON.stringify({ error: deleteError.message }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "update-admin") {
+      const { name, email, password } = payload;
+
+      // Update admin's own agent profile
+      const { data: adminAgent } = await supabaseAdmin
+        .from("agents")
+        .select("id, user_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!adminAgent) {
+        return new Response(JSON.stringify({ error: "Admin agent profile not found" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Update agent name/email in agents table
+      const agentUpdates: Record<string, string> = {};
+      if (name) agentUpdates.name = name;
+      if (email) agentUpdates.email = email;
+
+      if (Object.keys(agentUpdates).length > 0) {
+        const { error: updateError } = await supabaseAdmin
+          .from("agents")
+          .update(agentUpdates)
+          .eq("id", adminAgent.id);
+        if (updateError) {
+          return new Response(JSON.stringify({ error: updateError.message }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      // Update auth user (email + password)
+      const authUpdates: Record<string, string> = {};
+      if (email) authUpdates.email = email;
+      if (password) authUpdates.password = password;
+
+      if (Object.keys(authUpdates).length > 0) {
+        const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+          adminAgent.user_id,
+          authUpdates
+        );
+        if (authError) {
+          return new Response(JSON.stringify({ error: authError.message }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
 
       return new Response(JSON.stringify({ success: true }), {

@@ -11,7 +11,7 @@ interface AuthContextType {
   agent: Agent | null;
   isAdmin: boolean;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null; isAdmin: boolean | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; isAdmin: boolean | null; isApproved: boolean | null }>;
   signUp: (email: string, password: string, name: string, suffixCode: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -122,24 +122,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       setLoading(false);
-      return { error: new Error(error.message), isAdmin: null };
+      return { error: new Error(error.message), isAdmin: null, isApproved: null };
     }
 
     const signedInUser = data.user ?? data.session?.user;
 
     if (!signedInUser) {
       setLoading(false);
-      return { error: new Error("Impossible de récupérer le compte connecté."), isAdmin: null };
+      return { error: new Error("Impossible de récupérer le compte connecté."), isAdmin: null, isApproved: null };
     }
 
     try {
       const isAdminUser = await fetchRole(signedInUser.id);
-      return { error: null, isAdmin: isAdminUser };
+
+      // For non-admin users, check approval status
+      if (!isAdminUser) {
+        const agentData = await fetchAgent(signedInUser.id);
+        if (!agentData?.is_approved) {
+          // Sign out immediately - not approved
+          await supabase.auth.signOut();
+          setLoading(false);
+          return {
+            error: new Error("Votre compte est en attente d'approbation par l'administrateur."),
+            isAdmin: false,
+            isApproved: false,
+          };
+        }
+      }
+
+      return { error: null, isAdmin: isAdminUser, isApproved: true };
     } catch (roleError) {
       setLoading(false);
       return {
         error: roleError instanceof Error ? roleError : new Error("Impossible de vérifier le rôle du compte."),
         isAdmin: null,
+        isApproved: null,
       };
     }
   };

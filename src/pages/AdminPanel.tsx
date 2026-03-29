@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Plus, Pencil, Trash2, Users, Package } from "lucide-react";
+import { LogOut, Plus, Pencil, Trash2, Users, Package, Check, X, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAgentStats } from "@/components/AdminAgentStats";
 import { AdminProfileModal } from "@/components/AdminProfileModal";
 
@@ -28,6 +30,9 @@ export default function AdminPanel() {
   const [saving, setSaving] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [form, setForm] = useState({ name: "", username: "", password: "", suffix_code: "" });
+
+  const approvedAgents = agents.filter(a => a.email !== ADMIN_EMAIL && a.is_approved);
+  const pendingAgents = agents.filter(a => a.email !== ADMIN_EMAIL && !a.is_approved);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -107,6 +112,32 @@ export default function AdminPanel() {
     }
   };
 
+  const handleApprove = async (agent: Agent) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-agents", {
+        body: { action: "approve", agent_id: agent.id },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      toast.success(`${agent.name} a été approuvé`);
+      fetchAgents();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
+  const handleReject = async (agent: Agent) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-agents", {
+        body: { action: "reject", agent_id: agent.id },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      toast.success(`${agent.name} a été rejeté et supprimé`);
+      fetchAgents();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur");
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -146,54 +177,135 @@ export default function AdminPanel() {
       <main className="container mx-auto px-4 py-8 space-y-8">
         <AdminAgentStats agents={agents} />
 
-        <div className="rounded-xl border bg-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nom</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Code</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Créé le</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {agents.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
-                      <Users className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                      Aucun agent pour le moment.
-                    </td>
-                  </tr>
-                ) : agents.filter(a => a.email !== ADMIN_EMAIL).map((agent) => (
-                  <tr key={agent.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-card-foreground">{agent.name}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{agent.email}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
-                        {agent.suffix_code}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {new Date(agent.created_at).toLocaleDateString("fr-FR")}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(agent)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => openDelete(agent)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <Tabs defaultValue="approved" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="approved" className="gap-2">
+              <Users className="h-4 w-4" /> Agents actifs ({approvedAgents.length})
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="gap-2">
+              <Clock className="h-4 w-4" /> En attente ({pendingAgents.length})
+              {pendingAgents.length > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 min-w-[20px] rounded-full px-1.5 text-[10px]">
+                  {pendingAgents.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="approved">
+            <div className="rounded-xl border bg-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nom</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Code</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Créé le</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {approvedAgents.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                          <Users className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                          Aucun agent actif pour le moment.
+                        </td>
+                      </tr>
+                    ) : approvedAgents.map((agent) => (
+                      <tr key={agent.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 text-sm font-medium text-card-foreground">{agent.name}</td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">{agent.email}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
+                            {agent.suffix_code}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">
+                          {new Date(agent.created_at).toLocaleDateString("fr-FR")}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => openEdit(agent)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => openDelete(agent)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="pending">
+            <div className="rounded-xl border bg-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nom</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Code</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Inscrit le</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {pendingAgents.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                          <Check className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                          Aucune demande en attente.
+                        </td>
+                      </tr>
+                    ) : pendingAgents.map((agent) => (
+                      <tr key={agent.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 text-sm font-medium text-card-foreground">{agent.name}</td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">{agent.email}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-600">
+                            {agent.suffix_code}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">
+                          {new Date(agent.created_at).toLocaleDateString("fr-FR")}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                              onClick={() => handleApprove(agent)}
+                              title="Approuver"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleReject(agent)}
+                              title="Rejeter"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Create/Edit Dialog */}
