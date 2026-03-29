@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn, signUp, session, loading: authLoading } = useAuth();
+  const { signIn, signUp, session, isAdmin, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -18,8 +18,10 @@ export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && session) navigate("/dashboard");
-  }, [session, authLoading, navigate]);
+    if (!authLoading && session) {
+      navigate(isAdmin ? "/admin" : "/dashboard");
+    }
+  }, [session, authLoading, isAdmin, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
