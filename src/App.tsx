@@ -9,6 +9,7 @@ import Login from "./pages/Login.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import CustomerForm from "./pages/CustomerForm.tsx";
 import AdminPanel from "./pages/AdminPanel.tsx";
+import Archives from "./pages/Archives.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/form/:agentCode" element={<CustomerForm />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/archives" element={<Archives />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
