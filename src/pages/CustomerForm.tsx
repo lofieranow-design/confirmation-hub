@@ -141,7 +141,7 @@ export default function CustomerForm() {
     const zoneValue = `${form.zone}/${form.city}`;
 
     const { error } = await supabase.from("customer_submissions").insert({
-      customer_name: `${form.fullName} - ${agentCode?.toUpperCase()}`,
+      customer_name: `${form.fullName} - ${decodedCode?.toUpperCase()}`,
       phone: form.phone,
       address: form.address,
       city: zoneValue,
