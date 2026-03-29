@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [chartFrom, setChartFrom] = useState<Date | undefined>(undefined);
   const [chartTo, setChartTo] = useState<Date | undefined>(undefined);
+  const [activePeriod, setActivePeriod] = useState<number | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -155,6 +156,12 @@ export default function Dashboard() {
                 value={p.count}
                 icon={periodIcons[i]}
                 variant={periodVariants[i]}
+                active={activePeriod === i}
+                onClick={() => {
+                  setActivePeriod(i);
+                  setChartFrom(p.start);
+                  setChartTo(p.end);
+                }}
               />
             ))}
           </div>
@@ -167,7 +174,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-foreground">Analyse par période</h2>
           </div>
           <div className="rounded-xl border bg-card p-5 space-y-4">
-            <DateRangeFilter from={chartFrom} to={chartTo} onFromChange={setChartFrom} onToChange={setChartTo} />
+            <DateRangeFilter from={chartFrom} to={chartTo} onFromChange={(d) => { setChartFrom(d); setActivePeriod(null); }} onToChange={(d) => { setChartTo(d); setActivePeriod(null); }} />
             {chartFrom && chartTo ? (
               <ConfirmationChart submissions={chartSubmissions} from={chartFrom} to={chartTo} />
             ) : (
