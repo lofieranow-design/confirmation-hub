@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { AdminAgentStats } from "@/components/AdminAgentStats";
+import { AdminProfileModal } from "@/components/AdminProfileModal";
 
 type Agent = Tables<"agents">;
 const ADMIN_EMAIL = "marouane@ecom.ma";
