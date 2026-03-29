@@ -265,8 +265,11 @@ Deno.serve(async (req) => {
       }
 
       // Update auth user (email + password)
-      const authUpdates: Record<string, string> = {};
-      if (email) authUpdates.email = email;
+      const authUpdates: Record<string, any> = {};
+      if (email) {
+        authUpdates.email = email;
+        authUpdates.email_confirm = true; // Skip email confirmation for admin
+      }
       if (password) authUpdates.password = password;
 
       if (Object.keys(authUpdates).length > 0) {
