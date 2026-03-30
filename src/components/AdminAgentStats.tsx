@@ -19,7 +19,6 @@ export function AdminAgentStats({ agents }: AdminAgentStatsProps) {
 
   useEffect(() => {
     fetchSubmissions();
-
     const channel = supabase
       .channel("admin-stats-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "customer_submissions" }, (payload) => {
@@ -29,7 +28,6 @@ export function AdminAgentStats({ agents }: AdminAgentStatsProps) {
         setSubmissions(prev => prev.filter(s => s.id !== (payload.old as any).id));
       })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, []);
 
@@ -80,18 +78,18 @@ export function AdminAgentStats({ agents }: AdminAgentStatsProps) {
         <DateRangeFilter from={from} to={to} onFromChange={setFrom} onToChange={setTo} />
       </div>
 
-      <div className="rounded-xl border bg-card overflow-hidden">
+      <div className="glass-card rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr className="border-b bg-primary/5">
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Agent</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Code</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Confirmations</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Performance</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-border/50">
               {agentStats.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">
@@ -102,10 +100,10 @@ export function AdminAgentStats({ agents }: AdminAgentStatsProps) {
               ) : agentStats.map(agent => {
                 const pct = total > 0 ? Math.round((agent.count / total) * 100) : 0;
                 return (
-                  <tr key={agent.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 font-medium text-card-foreground">{agent.name}</td>
+                  <tr key={agent.id} className="hover:bg-primary/3 transition-colors">
+                    <td className="px-4 py-3 font-medium text-foreground">{agent.name}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
+                      <span className="inline-flex items-center rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
                         {agent.suffix_code}
                       </span>
                     </td>
@@ -114,9 +112,9 @@ export function AdminAgentStats({ agents }: AdminAgentStatsProps) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-primary rounded-full transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
                             style={{ width: `${pct}%` }}
                           />
                         </div>

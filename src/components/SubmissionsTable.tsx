@@ -33,7 +33,7 @@ export function SubmissionsTable({ submissions, onDelete, page = 0, pageSize = 5
 
   if (submissions.length === 0) {
     return (
-      <div className="rounded-xl border bg-card p-12 text-center animate-fade-in">
+      <div className="glass-card rounded-2xl p-12 text-center animate-fade-in">
         <p className="text-muted-foreground">Aucune confirmation pour aujourd'hui.</p>
       </div>
     );
@@ -42,8 +42,8 @@ export function SubmissionsTable({ submissions, onDelete, page = 0, pageSize = 5
   const startIndex = page * pageSize;
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden animate-fade-in">
-      <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 border-b">
+    <div className="glass-card rounded-2xl overflow-hidden animate-fade-in">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/5 border-b border-border/50">
         <Radio className="h-4 w-4 text-primary animate-pulse" />
         <span className="text-xs font-semibold text-primary uppercase tracking-wider">Aperçu en direct</span>
         <span className="text-xs text-muted-foreground">— {submissions.length} sur cette page</span>
@@ -52,42 +52,42 @@ export function SubmissionsTable({ submissions, onDelete, page = 0, pageSize = 5
         <table className="w-full text-sm">
           <thead>
             <tr>
-              <th className="bg-[hsl(180,30%,85%)] border border-border px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
+              <th className="bg-primary/8 border border-border/30 px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
                 #
               </th>
-              <th className="bg-[hsl(45,40%,85%)] border border-border px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" colSpan={4}>
+              <th className="bg-primary/12 border border-border/30 px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" colSpan={4}>
                 Informations sur le destinataire
               </th>
-              <th className="bg-[hsl(180,30%,85%)] border border-border px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
+              <th className="bg-primary/8 border border-border/30 px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
                 Date
               </th>
-              <th className="bg-[hsl(180,30%,85%)] border border-border px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
+              <th className="bg-primary/8 border border-border/30 px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-foreground" rowSpan={2}>
                 Action
               </th>
             </tr>
             <tr>
-              <th className="bg-[hsl(45,40%,88%)] border border-border px-3 py-2 text-left text-xs font-semibold text-foreground">Nom</th>
-              <th className="bg-[hsl(45,40%,88%)] border border-border px-3 py-2 text-left text-xs font-semibold text-foreground">Téléphone</th>
-              <th className="bg-[hsl(45,40%,88%)] border border-border px-3 py-2 text-left text-xs font-semibold text-foreground">Zone</th>
-              <th className="bg-[hsl(45,40%,88%)] border border-border px-3 py-2 text-left text-xs font-semibold text-foreground">Adresse complète</th>
+              <th className="bg-primary/6 border border-border/30 px-3 py-2 text-left text-xs font-semibold text-foreground">Nom</th>
+              <th className="bg-primary/6 border border-border/30 px-3 py-2 text-left text-xs font-semibold text-foreground">Téléphone</th>
+              <th className="bg-primary/6 border border-border/30 px-3 py-2 text-left text-xs font-semibold text-foreground">Zone</th>
+              <th className="bg-primary/6 border border-border/30 px-3 py-2 text-left text-xs font-semibold text-foreground">Adresse complète</th>
             </tr>
           </thead>
           <tbody>
             {submissions.map((sub, idx) => (
-              <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
-                <td className="border border-border px-3 py-2.5 text-muted-foreground text-center">{startIndex + idx + 1}</td>
-                <td className="border border-border px-3 py-2.5 font-medium text-card-foreground">{sub.customer_name}</td>
-                <td className="border border-border px-3 py-2.5 text-muted-foreground">{sub.phone}</td>
-                <td className="border border-border px-3 py-2.5 text-muted-foreground">{sub.city}</td>
-                <td className="border border-border px-3 py-2.5 text-muted-foreground">{sub.address}</td>
-                <td className="border border-border px-3 py-2.5 text-muted-foreground text-center">
+              <tr key={sub.id} className="hover:bg-primary/3 transition-colors">
+                <td className="border border-border/30 px-3 py-2.5 text-muted-foreground text-center">{startIndex + idx + 1}</td>
+                <td className="border border-border/30 px-3 py-2.5 font-medium text-foreground">{sub.customer_name}</td>
+                <td className="border border-border/30 px-3 py-2.5 text-muted-foreground">{sub.phone}</td>
+                <td className="border border-border/30 px-3 py-2.5 text-muted-foreground">{sub.city}</td>
+                <td className="border border-border/30 px-3 py-2.5 text-muted-foreground">{sub.address}</td>
+                <td className="border border-border/30 px-3 py-2.5 text-muted-foreground text-center">
                   {format(new Date(sub.created_at), "dd MMM yyyy, HH:mm", { locale: fr })}
                 </td>
-                <td className="border border-border px-3 py-2.5 text-center">
+                <td className="border border-border/30 px-3 py-2.5 text-center">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
                     onClick={() => handleDelete(sub.id)}
                     disabled={deleting === sub.id}
                   >

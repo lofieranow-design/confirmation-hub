@@ -36,10 +36,7 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!isAdmin) {
-      navigate("/login");
-      return;
-    }
+    if (!isAdmin) { navigate("/login"); return; }
     fetchAgents();
   }, [isAdmin, authLoading, navigate]);
 
@@ -148,13 +145,13 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-background wave-bg">
+      <header className="glass sticky top-0 z-10 border-b-0">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setProfileOpen(true)}
-              className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center hover:opacity-90 transition-opacity"
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
             >
               <Package className="h-5 w-5 text-primary-foreground" />
             </button>
@@ -164,11 +161,11 @@ export default function AdminPanel() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={openCreate} className="gap-2">
+            <Button onClick={openCreate} className="gap-2 rounded-xl shadow-md shadow-primary/20">
               <Plus className="h-4 w-4" />
               Ajouter un agent
             </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={async () => { await signOut(); navigate("/login"); }}>
+            <Button variant="ghost" size="icon" className="text-muted-foreground rounded-xl" onClick={async () => { await signOut(); navigate("/login"); }}>
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -179,11 +176,11 @@ export default function AdminPanel() {
         <AdminAgentStats agents={agents} />
 
         <Tabs defaultValue="approved" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="approved" className="gap-2">
+          <TabsList className="rounded-2xl bg-secondary/50 p-1">
+            <TabsTrigger value="approved" className="gap-2 rounded-xl">
               <Users className="h-4 w-4" /> Agents actifs ({approvedAgents.length})
             </TabsTrigger>
-            <TabsTrigger value="pending" className="gap-2">
+            <TabsTrigger value="pending" className="gap-2 rounded-xl">
               <Clock className="h-4 w-4" /> En attente ({pendingAgents.length})
               {pendingAgents.length > 0 && (
                 <Badge variant="destructive" className="ml-1 h-5 min-w-[20px] rounded-full px-1.5 text-[10px]">
@@ -194,11 +191,11 @@ export default function AdminPanel() {
           </TabsList>
 
           <TabsContent value="approved">
-            <div className="rounded-xl border bg-card overflow-hidden">
+            <div className="glass-card rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b bg-muted/50">
+                    <tr className="border-b bg-primary/5">
                       <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nom</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Code</th>
@@ -206,7 +203,7 @@ export default function AdminPanel() {
                       <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody className="divide-y divide-border/50">
                     {approvedAgents.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
@@ -215,11 +212,11 @@ export default function AdminPanel() {
                         </td>
                       </tr>
                     ) : approvedAgents.map((agent) => (
-                      <tr key={agent.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 text-sm font-medium text-card-foreground">{agent.name}</td>
+                      <tr key={agent.id} className="hover:bg-primary/3 transition-colors">
+                        <td className="px-4 py-3 text-sm font-medium text-foreground">{agent.name}</td>
                         <td className="px-4 py-3 text-sm text-muted-foreground">{agent.email}</td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
+                          <span className="inline-flex items-center rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
                             {agent.suffix_code}
                           </span>
                         </td>
@@ -228,10 +225,10 @@ export default function AdminPanel() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => openEdit(agent)}>
+                            <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => openEdit(agent)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => openDelete(agent)}>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive rounded-xl" onClick={() => openDelete(agent)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -245,11 +242,11 @@ export default function AdminPanel() {
           </TabsContent>
 
           <TabsContent value="pending">
-            <div className="rounded-xl border bg-card overflow-hidden">
+            <div className="glass-card rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b bg-muted/50">
+                    <tr className="border-b bg-primary/5">
                       <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nom</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Code</th>
@@ -257,7 +254,7 @@ export default function AdminPanel() {
                       <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody className="divide-y divide-border/50">
                     {pendingAgents.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
@@ -266,11 +263,11 @@ export default function AdminPanel() {
                         </td>
                       </tr>
                     ) : pendingAgents.map((agent) => (
-                      <tr key={agent.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 text-sm font-medium text-card-foreground">{agent.name}</td>
+                      <tr key={agent.id} className="hover:bg-primary/3 transition-colors">
+                        <td className="px-4 py-3 text-sm font-medium text-foreground">{agent.name}</td>
                         <td className="px-4 py-3 text-sm text-muted-foreground">{agent.email}</td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-600">
+                          <span className="inline-flex items-center rounded-lg bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning">
                             {agent.suffix_code}
                           </span>
                         </td>
@@ -282,7 +279,7 @@ export default function AdminPanel() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                              className="text-primary hover:text-primary hover:bg-primary/10 rounded-xl"
                               onClick={() => handleApprove(agent)}
                               title="Approuver"
                             >
@@ -291,7 +288,7 @@ export default function AdminPanel() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-destructive hover:text-destructive"
+                              className="text-destructive hover:text-destructive rounded-xl"
                               onClick={() => handleReject(agent)}
                               title="Rejeter"
                             >
@@ -309,45 +306,43 @@ export default function AdminPanel() {
         </Tabs>
       </main>
 
-      {/* Create/Edit Dialog */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>{editingAgent ? "Modifier l'agent" : "Nouvel agent"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
               <Label htmlFor="agent-name">Nom complet</Label>
-              <Input id="agent-name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Fatima Zahra" className="mt-1.5" />
+              <Input id="agent-name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Fatima Zahra" className="mt-1.5 rounded-xl" />
             </div>
             <div>
               <Label htmlFor="agent-username">Email</Label>
               <div className="flex mt-1.5">
-                <Input id="agent-username" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} placeholder="fatima" className="rounded-r-none" />
-                <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 bg-muted text-muted-foreground text-sm">@confirma.ma</span>
+                <Input id="agent-username" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} placeholder="fatima" className="rounded-r-none rounded-l-xl" />
+                <span className="inline-flex items-center px-3 rounded-r-xl border border-l-0 bg-muted text-muted-foreground text-sm">@confirma.ma</span>
               </div>
             </div>
             <div>
               <Label htmlFor="agent-password">{editingAgent ? "Nouveau mot de passe (laisser vide pour ne pas changer)" : "Mot de passe"}</Label>
-              <Input id="agent-password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="mt-1.5" />
+              <Input id="agent-password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="mt-1.5 rounded-xl" />
             </div>
             <div>
               <Label htmlFor="agent-suffix">Code suffixe</Label>
-              <Input id="agent-suffix" value={form.suffix_code} onChange={e => setForm(f => ({ ...f, suffix_code: e.target.value }))} placeholder="FZ" maxLength={3} className="mt-1.5 uppercase" />
+              <Input id="agent-suffix" value={form.suffix_code} onChange={e => setForm(f => ({ ...f, suffix_code: e.target.value }))} placeholder="FZ" maxLength={10} className="mt-1.5 uppercase rounded-xl" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setFormOpen(false)}>Annuler</Button>
-            <Button onClick={handleSave} disabled={saving || !form.name || !form.username || !form.suffix_code}>
+            <Button variant="outline" onClick={() => setFormOpen(false)} className="rounded-xl">Annuler</Button>
+            <Button onClick={handleSave} disabled={saving || !form.name || !form.username || !form.suffix_code} className="rounded-xl">
               {saving ? "Enregistrement..." : editingAgent ? "Modifier" : "Créer"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer cet agent ?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -355,8 +350,8 @@ export default function AdminPanel() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={saving} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={saving} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
               {saving ? "Suppression..." : "Supprimer"}
             </AlertDialogAction>
           </AlertDialogFooter>

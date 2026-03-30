@@ -51,7 +51,7 @@ function SearchableSelect({
         id={id}
         disabled={disabled}
         onClick={() => setOpen(!open)}
-        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1.5"
+        className="flex h-11 w-full items-center justify-between rounded-xl border border-input/50 bg-background/50 px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1.5 transition-all"
       >
         <span className={value ? "text-foreground" : "text-muted-foreground"}>
           {value || placeholder}
@@ -59,8 +59,8 @@ function SearchableSelect({
         <ChevronDown className="h-4 w-4 opacity-50" />
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg max-h-60 overflow-hidden">
-          <div className="flex items-center border-b px-3 py-2">
+        <div className="absolute z-50 mt-1 w-full rounded-xl border bg-popover shadow-lg shadow-primary/5 max-h-60 overflow-hidden">
+          <div className="flex items-center border-b px-3 py-2.5">
             <Search className="h-4 w-4 text-muted-foreground mr-2 shrink-0" />
             <input
               type="text"
@@ -80,8 +80,8 @@ function SearchableSelect({
                   key={option}
                   type="button"
                   onClick={() => { onChange(option); setOpen(false); setSearch(""); }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors ${
-                    value === option ? "bg-accent/50 font-medium" : ""
+                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 hover:text-primary transition-colors ${
+                    value === option ? "bg-primary/10 font-medium text-primary" : ""
                   }`}
                 >
                   {option}
@@ -99,7 +99,6 @@ export default function CustomerForm() {
   const { agentCode } = useParams<{ agentCode: string }>();
   const [searchParams] = useSearchParams();
   const queryCode = searchParams.get("code");
-  // Support both /form/:agentCode (legacy) and /form?code=XYZ (new)
   const resolvedCode = (agentCode || queryCode || "").toUpperCase() || undefined;
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -139,9 +138,7 @@ export default function CustomerForm() {
     if (!agentId || !form.fullName || !form.phone || !form.city || !form.zone || !form.address) return;
 
     setLoading(true);
-
     const zoneValue = `${form.zone}/${form.city}`;
-
     const { error } = await supabase.from("customer_submissions").insert({
       customer_name: `${form.fullName} - ${resolvedCode}`,
       phone: form.phone,
@@ -161,8 +158,8 @@ export default function CustomerForm() {
 
   if (agentNotFound) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="text-center space-y-4">
+      <div className="min-h-screen bg-background wave-bg flex items-center justify-center px-4">
+        <div className="text-center space-y-4 glass-card rounded-3xl p-10 animate-fade-in">
           <h2 className="text-2xl font-bold text-foreground">Lien invalide</h2>
           <p className="text-muted-foreground">Ce lien de confirmation n'est pas valide.</p>
         </div>
@@ -172,13 +169,13 @@ export default function CustomerForm() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="text-center space-y-4 animate-fade-in">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <CheckCircle2 className="h-8 w-8 text-primary" />
+      <div className="min-h-screen bg-background wave-bg flex items-center justify-center px-4">
+        <div className="text-center space-y-5 animate-fade-in glass-card rounded-3xl p-10">
+          <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <CheckCircle2 className="h-10 w-10 text-primary" />
           </div>
           <h2 className="text-2xl font-bold text-foreground">Merci !</h2>
-          <p className="text-muted-foreground max-w-sm">
+          <p className="text-muted-foreground max-w-sm leading-relaxed">
             Votre confirmation a été enregistrée avec succès. Nous vous contacterons bientôt.
           </p>
         </div>
@@ -187,25 +184,28 @@ export default function CustomerForm() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="bg-primary text-primary-foreground py-6 px-4 text-center">
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <Package className="h-6 w-6" />
-          <h1 className="text-xl font-bold tracking-tight">ConfirmaPro</h1>
+    <div className="min-h-screen bg-background wave-bg flex flex-col">
+      {/* Header with organic wave shape */}
+      <div className="relative">
+        <div className="bg-gradient-to-br from-primary to-accent text-primary-foreground py-8 px-4 text-center rounded-b-[2rem]">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Package className="h-7 w-7" />
+            <h1 className="text-xl font-bold tracking-tight">ConfirmaPro</h1>
+          </div>
+          <p className="text-primary-foreground/80 text-sm">Confirmez votre commande</p>
         </div>
-        <p className="text-primary-foreground/80 text-sm">Confirmez votre commande</p>
       </div>
 
       <div className="flex-1 flex items-start justify-center px-4 py-8">
         <form onSubmit={handleSubmit} className="w-full max-w-md space-y-5 animate-fade-in">
-          <div className="rounded-xl border bg-card p-6 space-y-4">
+          <div className="glass-card rounded-2xl p-6 space-y-4">
             <div>
               <Label htmlFor="fullName">Nom et prénom *</Label>
-              <Input id="fullName" value={form.fullName} onChange={e => setForm(prev => ({ ...prev, fullName: e.target.value }))} placeholder="Votre nom et prénom" required className="mt-1.5" />
+              <Input id="fullName" value={form.fullName} onChange={e => setForm(prev => ({ ...prev, fullName: e.target.value }))} placeholder="Votre nom et prénom" required className="mt-1.5 rounded-xl border-input/50 bg-background/50" />
             </div>
             <div>
               <Label htmlFor="phone">Téléphone *</Label>
-              <Input id="phone" type="tel" value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="+212 6XX XX XX XX" required className="mt-1.5" />
+              <Input id="phone" type="tel" value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))} placeholder="+212 6XX XX XX XX" required className="mt-1.5 rounded-xl border-input/50 bg-background/50" />
             </div>
             <SearchableSelect
               id="city"
@@ -226,11 +226,15 @@ export default function CustomerForm() {
             />
             <div>
               <Label htmlFor="address">Adresse complète *</Label>
-              <Input id="address" value={form.address} onChange={e => setForm(prev => ({ ...prev, address: e.target.value }))} placeholder="Adresse complète du destinataire" required className="mt-1.5" />
+              <Input id="address" value={form.address} onChange={e => setForm(prev => ({ ...prev, address: e.target.value }))} placeholder="Adresse complète du destinataire" required className="mt-1.5 rounded-xl border-input/50 bg-background/50" />
             </div>
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading || !agentId || !form.fullName || !form.phone || !form.city || !form.zone || !form.address}>
+          <Button
+            type="submit"
+            className="w-full h-13 text-base font-semibold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:scale-[1.01]"
+            disabled={loading || !agentId || !form.fullName || !form.phone || !form.city || !form.zone || !form.address}
+          >
             {loading ? "Envoi en cours..." : "Confirmer ma commande"}
           </Button>
 

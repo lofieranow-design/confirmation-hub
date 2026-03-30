@@ -41,18 +41,19 @@ export function ConfirmationChart({ submissions, from, to }: ConfirmationChartPr
       <div className="h-[250px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
             <Tooltip
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
+                borderRadius: "12px",
                 color: "hsl(var(--foreground))",
+                boxShadow: "0 4px 24px hsl(152 52% 36% / 0.1)",
               }}
             />
-            <Bar dataKey="confirmations" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="confirmations" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
