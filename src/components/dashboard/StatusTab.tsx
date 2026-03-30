@@ -9,9 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
-  { value: "reporte", label: "Reporté", color: "text-orange-500" },
+  { value: "reporte", label: "Reporté", color: "text-warning" },
   { value: "retour", label: "Retour", color: "text-destructive" },
-  { value: "livre", label: "Livré", color: "text-green-600" },
+  { value: "livre", label: "Livré", color: "text-primary" },
   { value: "sans_reponse", label: "Sans réponse", color: "text-muted-foreground" },
 ] as const;
 
@@ -105,7 +105,7 @@ export function StatusTab({ agentId }: StatusTabProps) {
         {statusCounts.map(s => (
           <div
             key={s.value}
-            className={`rounded-lg border bg-card p-4 text-center cursor-pointer transition-all hover:shadow-md ${statusFilter === s.value ? "ring-2 ring-primary" : ""}`}
+            className={`glass-card rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 ${statusFilter === s.value ? "ring-2 ring-primary shadow-lg" : ""}`}
             onClick={() => setStatusFilter(statusFilter === s.value ? "all" : s.value)}
           >
             <p className={`text-2xl font-bold ${s.color}`}>{s.count}</p>
@@ -118,11 +118,11 @@ export function StatusTab({ agentId }: StatusTabProps) {
         <div className="flex items-center gap-3 flex-wrap">
           <DateRangeFilter from={fromDate} to={toDate} onFromChange={setFromDate} onToChange={setToDate} />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] rounded-xl">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrer par statut" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">Tous les statuts</SelectItem>
               <SelectItem value="no_status">Sans statut</SelectItem>
               {STATUS_OPTIONS.map(opt => (
@@ -135,16 +135,16 @@ export function StatusTab({ agentId }: StatusTabProps) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border bg-card p-12 text-center">
+        <div className="glass-card rounded-2xl p-12 text-center">
           <ClipboardList className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
           <p className="text-muted-foreground">Aucune commande trouvée.</p>
         </div>
       ) : (
-        <div className="rounded-xl border bg-card overflow-hidden">
+        <div className="glass-card rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/50">
+                <tr className="border-b bg-primary/5">
                   <th className="px-3 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">#</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Client</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Téléphone</th>
@@ -158,11 +158,11 @@ export function StatusTab({ agentId }: StatusTabProps) {
                   <th className="px-3 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Statut</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-border/50">
                 {filtered.map((sub, idx) => (
-                  <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
+                  <tr key={sub.id} className="hover:bg-primary/3 transition-colors">
                     <td className="px-3 py-3 text-muted-foreground">{idx + 1}</td>
-                    <td className="px-3 py-3 font-medium text-card-foreground">{sub.customer_name}</td>
+                    <td className="px-3 py-3 font-medium text-foreground">{sub.customer_name}</td>
                     <td className="px-3 py-3 text-muted-foreground">{sub.phone}</td>
                     <td className="px-3 py-3 text-muted-foreground">{sub.city}</td>
                     <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">

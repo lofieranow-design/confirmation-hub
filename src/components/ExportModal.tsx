@@ -48,10 +48,8 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
 
   const handleGenerate = async () => {
     setGenerating(true);
-
     try {
       const blob = await buildExcelWorkbook(submissions, form);
-
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -64,7 +62,6 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
       link.click();
       document.body.removeChild(link);
       window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-
       toast.success("Téléchargement lancé");
       onOpenChange(false);
       setInjected(false);
@@ -86,7 +83,7 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
         if (!value) setInjected(false);
       }}
     >
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5 text-primary" />
@@ -102,35 +99,25 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
               <Label htmlFor="so">
                 S.O. <span className="text-xs text-muted-foreground">(facultatif)</span>
               </Label>
-              <Input id="so" value={form.so} onChange={(e) => handleChange("so", e.target.value)} placeholder="Numéro S.O." />
+              <Input id="so" value={form.so} onChange={(e) => handleChange("so", e.target.value)} placeholder="Numéro S.O." className="rounded-xl" />
             </div>
             <div>
               <Label htmlFor="nom_marchandise">Nom de la marchandise *</Label>
-              <Input
-                id="nom_marchandise"
-                value={form.nom_marchandise}
-                onChange={(e) => handleChange("nom_marchandise", e.target.value)}
-                placeholder="Nom du produit"
-              />
+              <Input id="nom_marchandise" value={form.nom_marchandise} onChange={(e) => handleChange("nom_marchandise", e.target.value)} placeholder="Nom du produit" className="rounded-xl" />
             </div>
             <div>
               <Label htmlFor="montant_total">Montant total *</Label>
-              <Input
-                id="montant_total"
-                value={form.montant_total}
-                onChange={(e) => handleChange("montant_total", e.target.value)}
-                placeholder="Ex: 299"
-              />
+              <Input id="montant_total" value={form.montant_total} onChange={(e) => handleChange("montant_total", e.target.value)} placeholder="Ex: 299" className="rounded-xl" />
             </div>
             <div>
               <Label htmlFor="autoriser_ouverture">
                 Autoriser l'ouverture du colis <span className="text-xs text-muted-foreground">(facultatif)</span>
               </Label>
               <Select value={form.autoriser_ouverture} onValueChange={(value) => handleChange("autoriser_ouverture", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Choisir..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   <SelectItem value="yes">Yes</SelectItem>
                   <SelectItem value="no">No</SelectItem>
                 </SelectContent>
@@ -140,27 +127,21 @@ export function ExportModal({ open, onOpenChange, submissions }: ExportModalProp
               <Label htmlFor="remarque">
                 Remarque <span className="text-xs text-muted-foreground">(facultatif)</span>
               </Label>
-              <Textarea
-                id="remarque"
-                value={form.remarque}
-                onChange={(e) => handleChange("remarque", e.target.value)}
-                placeholder="Notes supplémentaires..."
-                rows={2}
-              />
+              <Textarea id="remarque" value={form.remarque} onChange={(e) => handleChange("remarque", e.target.value)} placeholder="Notes supplémentaires..." rows={2} className="rounded-xl" />
             </div>
           </div>
         </div>
         <DialogFooter className="flex gap-2 sm:gap-2">
-          <Button type="button" variant="outline" onClick={() => { onOpenChange(false); setInjected(false); }}>
+          <Button type="button" variant="outline" onClick={() => { onOpenChange(false); setInjected(false); }} className="rounded-xl">
             Annuler
           </Button>
           {!injected ? (
-            <Button type="button" onClick={handleInject} disabled={!isValid} className="gap-2">
+            <Button type="button" onClick={handleInject} disabled={!isValid} className="gap-2 rounded-xl">
               <Syringe className="h-4 w-4" />
               Injecter
             </Button>
           ) : (
-            <Button type="button" onClick={handleGenerate} disabled={generating} className="gap-2">
+            <Button type="button" onClick={handleGenerate} disabled={generating} className="gap-2 rounded-xl">
               <Download className="h-4 w-4" />
               {generating ? "Génération..." : "Générer le fichier Excel"}
             </Button>

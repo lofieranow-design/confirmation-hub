@@ -55,13 +55,11 @@ export default function Dashboard() {
   const fetchPage = useCallback(async (pageNum: number) => {
     if (!agent) return;
     setLoadingData(true);
-
     let query = supabase
       .from("customer_submissions")
       .select("*", { count: "exact" })
       .eq("agent_id", agent.id)
       .order("created_at", { ascending: false });
-
     if (hasDateFilter) {
       if (fromDate) {
         const start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
@@ -75,11 +73,9 @@ export default function Dashboard() {
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       query = query.gte("created_at", todayStart.toISOString());
     }
-
     const from = pageNum * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
     query = query.range(from, to);
-
     const { data, count } = await query;
     setSubmissions(data || []);
     setTotalCount(count || 0);
@@ -106,7 +102,6 @@ export default function Dashboard() {
     if (!agent || !chartFrom || !chartTo) { setChartSubmissions([]); return; }
     const start = new Date(chartFrom.getFullYear(), chartFrom.getMonth(), chartFrom.getDate());
     const end = new Date(chartTo.getFullYear(), chartTo.getMonth(), chartTo.getDate(), 23, 59, 59, 999);
-    
     let allData: Submission[] = [];
     let offset = 0;
     const batchSize = 1000;
@@ -165,11 +160,9 @@ export default function Dashboard() {
     if (authLoading) return;
     if (isAdmin) { navigate("/admin"); return; }
     if (!agent) { navigate("/login"); return; }
-    
     setPage(0);
     fetchPage(0);
     fetchPeriodCounts();
-
     const channel = supabase
       .channel("submissions-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "customer_submissions", filter: `agent_id=eq.${agent.id}` }, () => {
@@ -178,7 +171,6 @@ export default function Dashboard() {
         setPage(0);
       })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [agent, authLoading, isAdmin, navigate]);
 
@@ -224,11 +216,11 @@ export default function Dashboard() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-background wave-bg">
+      <header className="glass sticky top-0 z-10 border-b-0">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md shadow-primary/20">
               <Package className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
@@ -238,7 +230,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground hidden sm:block">{agent.name}</span>
-            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleLogout}>
+            <Button variant="ghost" size="icon" className="text-muted-foreground rounded-xl" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -246,7 +238,6 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        {/* Statistics & Chart section */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-1">Statistiques en direct</h2>
           <p className="text-sm text-muted-foreground mb-4 capitalize">{monthName}</p>
@@ -275,7 +266,7 @@ export default function Dashboard() {
             <BarChart3 className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Analyse par période</h2>
           </div>
-          <div className="rounded-xl border bg-card p-5 space-y-4">
+          <div className="glass-card rounded-2xl p-6 space-y-4">
             <DateRangeFilter from={chartFrom} to={chartTo} onFromChange={(d) => { setChartFrom(d); setActivePeriod(null); }} onToChange={(d) => { setChartTo(d); setActivePeriod(null); }} />
             {chartFrom && chartTo ? (
               <ConfirmationChart submissions={chartSubmissions} from={chartFrom} to={chartTo} />
@@ -291,12 +282,11 @@ export default function Dashboard() {
           <AgentLinkCard suffixCode={agent.suffix_code} />
         </section>
 
-        {/* Tabbed content */}
         <Tabs defaultValue="today" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="today">Confirmations du jour</TabsTrigger>
-            <TabsTrigger value="archives">Archives</TabsTrigger>
-            <TabsTrigger value="status">Status</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-secondary/50 p-1">
+            <TabsTrigger value="today" className="rounded-xl">Confirmations du jour</TabsTrigger>
+            <TabsTrigger value="archives" className="rounded-xl">Archives</TabsTrigger>
+            <TabsTrigger value="status" className="rounded-xl">Status</TabsTrigger>
           </TabsList>
 
           <TabsContent value="today">
@@ -306,7 +296,7 @@ export default function Dashboard() {
                   Confirmations du jour
                   <span className="text-sm font-normal text-muted-foreground ml-2">({totalCount})</span>
                 </h2>
-                <Button onClick={handleExportOpen} className="gap-2">
+                <Button onClick={handleExportOpen} className="gap-2 rounded-xl">
                   <FileSpreadsheet className="h-4 w-4" />
                   Exporter
                 </Button>
@@ -326,10 +316,10 @@ export default function Dashboard() {
                     Page {page + 1} sur {totalPages}
                   </p>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                    <Button variant="outline" size="sm" className="rounded-xl" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
                       Précédent
                     </Button>
-                    <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+                    <Button variant="outline" size="sm" className="rounded-xl" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
                       Suivant
                     </Button>
                   </div>

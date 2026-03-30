@@ -70,7 +70,7 @@ export function ArchiveTab({ agentId }: ArchiveTabProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <DateRangeFilter from={fromDate} to={toDate} onFromChange={setFromDate} onToChange={setToDate} />
-        <Button onClick={() => setExportOpen(true)} className="gap-2" disabled={filtered.length === 0}>
+        <Button onClick={() => setExportOpen(true)} className="gap-2 rounded-xl" disabled={filtered.length === 0}>
           <FileSpreadsheet className="h-4 w-4" />
           Exporter ({filtered.length})
         </Button>
@@ -81,16 +81,16 @@ export function ArchiveTab({ agentId }: ArchiveTabProps) {
       </p>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border bg-card p-12 text-center">
+        <div className="glass-card rounded-2xl p-12 text-center">
           <Archive className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
           <p className="text-muted-foreground">Aucune confirmation trouvée.</p>
         </div>
       ) : (
-        <div className="rounded-xl border bg-card overflow-hidden">
+        <div className="glass-card rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/50">
+                <tr className="border-b bg-primary/5">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">#</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Client</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Téléphone</th>
@@ -100,11 +100,11 @@ export function ArchiveTab({ agentId }: ArchiveTabProps) {
                   <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-border/50">
                 {filtered.map((sub, idx) => (
-                  <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
+                  <tr key={sub.id} className="hover:bg-primary/3 transition-colors">
                     <td className="px-4 py-3 text-muted-foreground">{idx + 1}</td>
-                    <td className="px-4 py-3 font-medium text-card-foreground">{sub.customer_name}</td>
+                    <td className="px-4 py-3 font-medium text-foreground">{sub.customer_name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{sub.phone}</td>
                     <td className="px-4 py-3 text-muted-foreground">{sub.city}</td>
                     <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{sub.address}</td>
@@ -115,7 +115,7 @@ export function ArchiveTab({ agentId }: ArchiveTabProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
                         onClick={() => handleDelete(sub.id)}
                         disabled={deleting === sub.id}
                       >

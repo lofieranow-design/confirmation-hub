@@ -18,20 +18,22 @@ export function AgentLinkCard({ suffixCode }: AgentLinkCardProps) {
   };
 
   return (
-    <div className="rounded-xl border bg-card p-6 animate-fade-in">
+    <div className="glass-card rounded-2xl p-6 animate-fade-in">
       <div className="flex items-center gap-2 mb-3">
-        <Link className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-card-foreground">Votre lien personnalisé</h3>
+        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+          <Link className="h-5 w-5 text-primary" />
+        </div>
+        <h3 className="font-semibold text-foreground">Votre lien personnalisé</h3>
       </div>
       <p className="text-sm text-muted-foreground mb-4">
         Partagez ce lien avec vos clients pour collecter leurs confirmations.
       </p>
       <div className="flex items-center gap-2">
-        <code className="flex-1 rounded-lg bg-muted px-4 py-3 text-sm font-mono text-foreground truncate">
+        <code className="flex-1 rounded-xl bg-background/60 border border-border/50 px-4 py-3 text-sm font-mono text-foreground truncate">
           {link}
         </code>
-        <Button size="icon" variant="outline" onClick={handleCopy} className="shrink-0">
-          {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+        <Button size="icon" variant="outline" onClick={handleCopy} className="shrink-0 rounded-xl">
+          {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
         </Button>
       </div>
     </div>

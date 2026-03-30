@@ -88,16 +88,11 @@ export default function Login() {
   const isAdminMode = mode === "admin";
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background wave-bg flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8 animate-fade-in">
-        <div className="text-center space-y-2">
-          <div
-            className={cn(
-              "mx-auto w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors duration-300",
-              isAdminMode ? "bg-red-600" : "bg-emerald-600"
-            )}
-          >
-            <Package className="h-7 w-7 text-white" />
+        <div className="text-center space-y-3">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 animate-float">
+            <Package className="h-8 w-8 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">ConfirmaPro</h1>
           <p className="text-muted-foreground text-sm">
@@ -105,47 +100,40 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Role selector - only show on login view */}
-        {view === "login" && <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setMode("admin")}
-            className={cn(
-              "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all duration-200 cursor-pointer",
-              isAdminMode
-                ? "border-red-500 bg-red-500/10 text-red-600 shadow-sm"
-                : "border-muted bg-card text-muted-foreground hover:border-red-300"
-            )}
-          >
-            <Shield className={cn("h-6 w-6", isAdminMode ? "text-red-500" : "text-muted-foreground")} />
-            <span className="text-sm font-semibold">Admin</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("agent")}
-            className={cn(
-              "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all duration-200 cursor-pointer",
-              !isAdminMode
-                ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 shadow-sm"
-                : "border-muted bg-card text-muted-foreground hover:border-emerald-300"
-            )}
-          >
-            <Users className={cn("h-6 w-6", !isAdminMode ? "text-emerald-500" : "text-muted-foreground")} />
-            <span className="text-sm font-semibold">Agent</span>
-          </button>
-        </div>}
+        {/* Role selector */}
+        {view === "login" && (
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setMode("admin")}
+              className={cn(
+                "flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all duration-300 cursor-pointer glass-card",
+                isAdminMode
+                  ? "border-destructive bg-destructive/5 text-destructive shadow-md shadow-destructive/10"
+                  : "border-transparent text-muted-foreground hover:border-destructive/30"
+              )}
+            >
+              <Shield className={cn("h-6 w-6", isAdminMode ? "text-destructive" : "text-muted-foreground")} />
+              <span className="text-sm font-semibold">Admin</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("agent")}
+              className={cn(
+                "flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all duration-300 cursor-pointer glass-card",
+                !isAdminMode
+                  ? "border-primary bg-primary/5 text-primary shadow-md shadow-primary/10"
+                  : "border-transparent text-muted-foreground hover:border-primary/30"
+              )}
+            >
+              <Users className={cn("h-6 w-6", !isAdminMode ? "text-primary" : "text-muted-foreground")} />
+              <span className="text-sm font-semibold">Agent</span>
+            </button>
+          </div>
+        )}
 
-        <form onSubmit={view === "signup" ? handleSignup : handleSubmit} className="space-y-4">
-          <div
-            className={cn(
-              "rounded-xl border-2 p-6 space-y-4 transition-colors duration-300",
-              view === "signup"
-                ? "border-emerald-500/30 bg-emerald-500/5"
-                : isAdminMode
-                ? "border-red-500/30 bg-red-500/5"
-                : "border-emerald-500/30 bg-emerald-500/5"
-            )}
-          >
+        <form onSubmit={view === "signup" ? handleSignup : handleSubmit} className="space-y-5">
+          <div className="glass-card rounded-2xl p-6 space-y-4">
             {view === "signup" && (
               <>
                 <div>
@@ -157,11 +145,11 @@ export default function Login() {
                     onChange={(e) => setSignupName(e.target.value)}
                     placeholder="Fatima Zahra"
                     required
-                    className="mt-1.5 focus-visible:ring-emerald-500 border-emerald-200"
+                    className="mt-1.5 rounded-xl border-input/50 bg-background/50 focus-visible:ring-primary"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="signup-suffix">Code suffixe (2-3 lettres)</Label>
+                  <Label htmlFor="signup-suffix">Code suffixe</Label>
                   <Input
                     id="signup-suffix"
                     type="text"
@@ -170,7 +158,7 @@ export default function Login() {
                     placeholder="FZ"
                     required
                     maxLength={3}
-                    className="mt-1.5 uppercase focus-visible:ring-emerald-500 border-emerald-200"
+                    className="mt-1.5 uppercase rounded-xl border-input/50 bg-background/50 focus-visible:ring-primary"
                   />
                 </div>
               </>
@@ -184,14 +172,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={view === "signup" ? "votre@email.com" : isAdminMode ? "admin@ecom.ma" : "agent@confirma.ma"}
                 required
-                className={cn(
-                  "mt-1.5 transition-colors",
-                  view === "signup"
-                    ? "focus-visible:ring-emerald-500 border-emerald-200"
-                    : isAdminMode
-                    ? "focus-visible:ring-red-500 border-red-200"
-                    : "focus-visible:ring-emerald-500 border-emerald-200"
-                )}
+                className="mt-1.5 rounded-xl border-input/50 bg-background/50 focus-visible:ring-primary"
               />
             </div>
             <div>
@@ -204,14 +185,7 @@ export default function Login() {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className={cn(
-                  "mt-1.5 transition-colors",
-                  view === "signup"
-                    ? "focus-visible:ring-emerald-500 border-emerald-200"
-                    : isAdminMode
-                    ? "focus-visible:ring-red-500 border-red-200"
-                    : "focus-visible:ring-emerald-500 border-emerald-200"
-                )}
+                className="mt-1.5 rounded-xl border-input/50 bg-background/50 focus-visible:ring-primary"
               />
             </div>
           </div>
@@ -219,56 +193,41 @@ export default function Login() {
           <Button
             type="submit"
             className={cn(
-              "w-full h-12 text-base font-semibold gap-2 transition-colors duration-300",
-              view === "signup"
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                : isAdminMode
-                ? "bg-red-600 hover:bg-red-700 text-white"
-                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+              "w-full h-12 text-base font-semibold gap-2 rounded-2xl shadow-lg transition-all hover:scale-[1.01]",
+              isAdminMode && view !== "signup"
+                ? "bg-destructive hover:bg-destructive/90 shadow-destructive/25"
+                : "bg-primary hover:bg-primary/90 shadow-primary/25"
             )}
             disabled={loading}
           >
             {loading ? (
               "Chargement..."
+            ) : view === "signup" ? (
+              <>
+                <UserPlus className="h-4 w-4" />
+                Créer mon compte
+              </>
             ) : (
               <>
-                {view === "signup" ? (
-                  <>
-                    <UserPlus className="h-4 w-4" />
-                    Créer mon compte
-                  </>
-                ) : (
-                  <>
-                    {isAdminMode ? "Connexion Admin" : "Connexion Agent"}
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
+                {isAdminMode ? "Connexion Admin" : "Connexion Agent"}
+                <ArrowRight className="h-4 w-4" />
               </>
             )}
           </Button>
 
-          {/* Toggle between login and signup - only for agents */}
           {!isAdminMode && (
             <p className="text-center text-sm text-muted-foreground">
               {view === "login" ? (
                 <>
                   Pas encore de compte ?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setView("signup")}
-                    className="text-emerald-600 font-semibold hover:underline"
-                  >
+                  <button type="button" onClick={() => setView("signup")} className="text-primary font-semibold hover:underline">
                     Créer un compte
                   </button>
                 </>
               ) : (
                 <>
                   Déjà un compte ?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setView("login")}
-                    className="text-emerald-600 font-semibold hover:underline"
-                  >
+                  <button type="button" onClick={() => setView("login")} className="text-primary font-semibold hover:underline">
                     Se connecter
                   </button>
                 </>

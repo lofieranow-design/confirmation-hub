@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Mail, Lock, Eye, EyeOff, Pencil, Save, X } from "lucide-react";
+import { User, Mail, Lock, Pencil, Save, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,6 @@ export function AdminProfileModal({ open, onOpenChange }: AdminProfileModalProps
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const startEditing = () => {
     setName(agent?.name || "");
@@ -54,7 +53,6 @@ export function AdminProfileModal({ open, onOpenChange }: AdminProfileModalProps
       toast.success("Profil mis à jour avec succès ! Veuillez vous reconnecter.");
       setEditing(false);
       setPassword("");
-      // Sign out and redirect to login after any credential change
       await signOut();
       window.location.href = "/login";
     } catch (err) {
@@ -66,12 +64,12 @@ export function AdminProfileModal({ open, onOpenChange }: AdminProfileModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-sm rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-center">Profil Administrateur</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center gap-4 py-4">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
             <User className="h-8 w-8 text-primary" />
           </div>
 
@@ -79,50 +77,50 @@ export function AdminProfileModal({ open, onOpenChange }: AdminProfileModalProps
             <div className="w-full space-y-3">
               <div>
                 <Label htmlFor="admin-name">Nom</Label>
-                <Input id="admin-name" value={name} onChange={e => setName(e.target.value)} className="mt-1" />
+                <Input id="admin-name" value={name} onChange={e => setName(e.target.value)} className="mt-1 rounded-xl" />
               </div>
               <div>
                 <Label htmlFor="admin-email">Email</Label>
-                <Input id="admin-email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1" />
+                <Input id="admin-email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 rounded-xl" />
               </div>
               <div>
                 <Label htmlFor="admin-password">Nouveau mot de passe (laisser vide pour ne pas changer)</Label>
-                <Input id="admin-password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" />
+                <Input id="admin-password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 rounded-xl" />
               </div>
               <div className="flex gap-2 pt-2">
-                <Button onClick={handleSave} disabled={saving} className="flex-1 gap-2">
+                <Button onClick={handleSave} disabled={saving} className="flex-1 gap-2 rounded-xl">
                   <Save className="h-4 w-4" />
                   {saving ? "Enregistrement..." : "Enregistrer"}
                 </Button>
-                <Button variant="outline" onClick={cancelEditing} disabled={saving}>
+                <Button variant="outline" onClick={cancelEditing} disabled={saving} className="rounded-xl">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           ) : (
             <div className="w-full space-y-3">
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-3">
+              <div className="flex items-center gap-3 rounded-xl border bg-background/50 px-4 py-3">
                 <User className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">Nom</p>
                   <p className="text-sm font-medium text-foreground">{agent?.name || "—"}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-3">
+              <div className="flex items-center gap-3 rounded-xl border bg-background/50 px-4 py-3">
                 <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
                   <p className="text-sm font-medium text-foreground">{agent?.email || "—"}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-3">
+              <div className="flex items-center gap-3 rounded-xl border bg-background/50 px-4 py-3">
                 <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">Mot de passe</p>
                   <p className="text-sm font-medium text-foreground font-mono">••••••••••</p>
                 </div>
               </div>
-              <Button variant="outline" onClick={startEditing} className="w-full gap-2 mt-2">
+              <Button variant="outline" onClick={startEditing} className="w-full gap-2 mt-2 rounded-xl">
                 <Pencil className="h-4 w-4" />
                 Modifier le profil
               </Button>
