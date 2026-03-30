@@ -91,10 +91,10 @@ export default function Login() {
     <div className="min-h-screen bg-background wave-bg flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8 animate-fade-in">
         <div className="text-center space-y-3">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 animate-float">
+          <div onClick={() => navigate("/")} className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 animate-float cursor-pointer hover:opacity-90 transition-opacity">
             <Package className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">ConfirmaPro</h1>
+          <h1 onClick={() => navigate("/")} className="text-2xl font-bold text-foreground tracking-tight cursor-pointer hover:text-primary transition-colors">ConfirmaPro</h1>
           <p className="text-muted-foreground text-sm">
             {view === "signup" ? "Créer un compte agent" : "Connectez-vous à votre espace"}
           </p>
