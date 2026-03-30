@@ -88,13 +88,20 @@ export default function Login() {
   const isAdminMode = mode === "admin";
 
   return (
-    <div className="min-h-screen bg-background wave-bg flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background wave-bg flex items-center justify-center px-4 relative">
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 w-10 h-10 rounded-xl glass-card flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
       <div className="w-full max-w-sm space-y-8 animate-fade-in">
         <div className="text-center space-y-3">
-          <Link to="/" className="block mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 animate-float hover:opacity-90 transition-opacity">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 animate-float">
             <Package className="h-8 w-8 text-primary-foreground" />
-          </Link>
-          <Link to="/" className="block text-2xl font-bold text-foreground tracking-tight hover:text-primary transition-colors">ConfirmaPro</Link>
+          </div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">ConfirmaPro</h1>
           <p className="text-muted-foreground text-sm">
             {view === "signup" ? "Créer un compte agent" : "Connectez-vous à votre espace"}
           </p>
