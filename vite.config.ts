@@ -4,11 +4,15 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 const repoName = process.env.GITHUB_REPOSITORY?.split("/")[1];
-const githubPagesBase = repoName && !repoName.endsWith(".github.io") ? `/${repoName}/` : "/";
 
-// https://vitejs.dev/config/
+const githubPagesBase =
+  repoName && !repoName.endsWith(".github.io")
+    ? `/${repoName}/`
+    : "/";
+
 export default defineConfig(({ mode }) => ({
   base: mode === "production" ? githubPagesBase : "/",
+
   server: {
     host: "::",
     port: 8080,
@@ -16,7 +20,12 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+
+  plugins: [
+    react(),
+    mode === "development" && componentTagger(),
+  ].filter(Boolean),
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
